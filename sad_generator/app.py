@@ -18,6 +18,7 @@ from .duty import PREFERENTIAL_KEYS
 from .excel_io import read_input_excel
 from .hs_lookup import lookup_hs_candidates, lookup_hs_tariff
 from .sad_builder import create_input_template
+from .sad_model import blank_model_bytes, model_path
 from .utils import normalize_hs_code
 
 log = logging.getLogger(__name__)
@@ -44,6 +45,7 @@ class GenerateResponse(BaseModel):
     item_count: int
     hs_auto_filled: int
     download_url: str
+    duty_sheet_url: str = ""
     output_file: str
     items_preview: list[dict] = Field(default_factory=list)
     duty_summary: dict = Field(default_factory=dict)
@@ -200,6 +202,17 @@ async def download_template():
         content=create_input_template(),
         media_type=XLS_MEDIA_TYPE,
         headers={"Content-Disposition": 'attachment; filename="SAD_Input_Template.xls"'},
+    )
+
+
+@app.get("/download-model")
+async def download_model(sample: bool = False):
+    """The ASYCUDA SAD model workbook — blank, or with its sample rows (``?sample=true``)."""
+    content = model_path().read_bytes() if sample else blank_model_bytes()
+    return Response(
+        content=content,
+        media_type=XLS_MEDIA_TYPE,
+        headers={"Content-Disposition": 'attachment; filename="SAD_MODEL.xls"'},
     )
 
 

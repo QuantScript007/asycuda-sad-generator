@@ -3,11 +3,11 @@
 # (build_exe.bat and the GitHub "Build Windows .exe" workflow both use this file)
 from PyInstaller.utils.hooks import collect_all, collect_submodules
 
-datas = [("sad_generator/static", "sad_generator/static")]
+datas = [("sad_generator/static", "sad_generator/static"), ("sad_generator/templates", "sad_generator/templates")]
 binaries = []
 hiddenimports = collect_submodules("uvicorn") + collect_submodules("sad_generator")
 
-for pkg in ("bs4", "openpyxl", "xlrd", "xlwt", "multipart", "python_multipart"):
+for pkg in ("bs4", "openpyxl", "xlrd", "xlwt", "olefile", "multipart", "python_multipart"):
     try:
         d, b, h = collect_all(pkg)
     except Exception:

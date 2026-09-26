@@ -18,6 +18,7 @@ dependencies = [
     "httpx==0.28.1",
     "beautifulsoup4==4.12.3",
     "python-multipart>=0.0.9",
+    "olefile>=0.46",
 ]
 
 [project.optional-dependencies]
@@ -33,7 +34,7 @@ packages = ["sad_generator"]
 version = { attr = "sad_generator.__version__" }
 
 [tool.setuptools.package-data]
-sad_generator = ["static/*"]
+sad_generator = ["static/*", "templates/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -856,12 +856,14 @@
       <div class="card accent a-sun">
         <div class="card-header">
           <div>
-            <h2 class="card-title">Step 1 · Get the input template</h2>
-            <div class="card-sub">Two sheets: <code>Declaration</code> (header) + <code>Items</code> (line items). Sample data included.</div>
+            <h2 class="card-title">Step 1 · Get an input file</h2>
+            <div class="card-sub">Fill the official <b>ASYCUDA SAD model</b> (<code>General Segment</code> + <code>Items</code>, with dropdowns and field hints) — or the simple two-sheet template. Both can be uploaded in Step 2.</div>
           </div>
         </div>
         <div class="btn-row">
-          <a class="btn btn-primary" href="/download-template" download>⬇ Download Template (.xls)</a>
+          <a class="btn btn-primary" href="/download-model" download>⬇ SAD Model (.xls)</a>
+          <a class="btn btn-secondary" href="/download-model?sample=true" download>SAD Model with sample rows</a>
+          <a class="btn btn-secondary" href="/download-template" download>Simple template</a>
           <button class="btn btn-secondary" onclick="switchToStep2()">I already have a file →</button>
         </div>
       </div>
@@ -1336,7 +1338,8 @@
           <div id="itemsPreviewWrap"></div>
 
           <div class="btn-row" style="margin-top: 16px;">
-            <a class="btn btn-primary" id="downloadLink" href="#" download>⬇ Download SAD File</a>
+            <a class="btn btn-primary" id="downloadLink" href="#" download title="Filled ASYCUDA SAD model — ready to import">⬇ Download SAD (ASYCUDA model)</a>
+            <a class="btn btn-secondary" id="dutyLink" href="#" download title="Item-by-item duty calculation">📊 Duty worksheet</a>
             <button class="btn btn-secondary" onclick="resetAll()">Generate Another</button>
           </div>
         </div>
@@ -1398,7 +1401,8 @@
         </div>
         <div class="btn-row" style="flex-direction: column; align-items: stretch;">
           <a class="btn btn-secondary" href="/docs" target="_blank">📜 Swagger API Docs</a>
-          <a class="btn btn-secondary" href="/download-template">⬇ Download Template</a>
+          <a class="btn btn-secondary" href="/download-model">⬇ Blank SAD Model</a>
+          <a class="btn btn-secondary" href="/download-template">⬇ Simple Template</a>
           <a class="btn btn-secondary" href="/api/history" target="_blank">🗂 History JSON</a>
         </div>
       </div>
@@ -1789,6 +1793,8 @@ async function generateSAD() {
 
 function renderResult(d) {
   $('downloadLink').href = d.download_url;
+  $('dutyLink').href = d.duty_sheet_url || '#';
+  $('dutyLink').classList.toggle('hidden', !d.duty_sheet_url);
   const ds = d.duty_summary || {};
   const cur = ds.currency || '';
   const prefLabel = { general: 'General', safta: 'SAFTA', cmfta: 'CMFTA' }[ds.preferential] || 'General';
@@ -1942,7 +1948,7 @@ async function loadHistory() {
     }
     $('historyList').innerHTML = files.map((f, i) => `
       <a class="history-item" href="${f.url}" download>
-        <div class="h-badge" style="background:${GRADS[i % GRADS.length]}">XLS</div>
+        <div class="h-badge" style="background:${/_duty\.xls$/i.test(f.name) ? 'linear-gradient(135deg,#8B5CF6,#EC4899)' : 'var(--grad-fresh)'}">${/_duty\.xls$/i.test(f.name) ? 'DUTY' : 'SAD'}</div>
         <div class="h-body">
           <div class="history-name">${escapeHtml(f.name)}</div>
           <div class="history-meta"><span>📅 ${escapeHtml(f.modified)}</span><span>·</span><span>💾 ${f.size_kb} KB</span></div>

@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.2.0 — 2026-09-26
+
+### Changed
+- **The downloaded SAD is now the official ASYCUDA SAD model** (`sad_generator/templates/SAD_MODEL.xls`), filled in with the shipment data. Everything in the model is kept exactly: `General Segment` and `Items` layout, cell styles and text formats, column widths, hidden currency columns (H–Q), merged headers, the customs-office dropdown and all other data-validation rules, and the field-hint comments.
+- The previous layout with duty columns is still produced alongside it as a **Duty worksheet** (`…_duty.xls`), downloadable from the result.
+
+### Added
+- **Download the SAD model** from Step 1 — blank, or with its sample rows — to fill by hand and upload.
+- ASYCUDA field limits from the model are enforced with a warning: description 49 characters, brand / model / size 24, packing codes 5.
+- Item-level freight / insurance / other costs / deductions (hidden columns) are written with their currency when present.
+- `template` on the command line writes the blank SAD model (`--simple` for the old two-sheet template).
+- `SAD_MODEL_PATH` to use an updated model file.
+- A small BIFF8 editor (`xls_template.py`) that fills cells without rebuilding the workbook — `xlutils` would have dropped the dropdowns and comments.
+
 ## 3.1.0 — 2026-09-26
 
 ### Added

@@ -141,12 +141,13 @@ if not exist "%REQUIREMENTS%" (
     >> "%REQUIREMENTS%" echo httpx==0.28.1
     >> "%REQUIREMENTS%" echo beautifulsoup4==4.12.3
     >> "%REQUIREMENTS%" echo python-multipart
+    >> "%REQUIREMENTS%" echo olefile
     echo   %GREEN%✓%RESET% Wrote %DIM%requirements.txt%RESET%
 )
 
 REM ── Check if key deps already installed in venv ──
 set "NEEDS_INSTALL=0"
-"%VENV_PYTHON%" -c "import fastapi, uvicorn, xlrd, xlwt, openpyxl, httpx, bs4, multipart" >nul 2>&1
+"%VENV_PYTHON%" -c "import fastapi, uvicorn, xlrd, xlwt, openpyxl, httpx, bs4, multipart, olefile" >nul 2>&1
 if not %errorlevel%==0 set "NEEDS_INSTALL=1"
 
 if %NEEDS_INSTALL%==1 (

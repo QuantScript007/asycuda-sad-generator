@@ -12,6 +12,7 @@ from .analytics import build_analytics
 from .duty import build_items_preview_and_duty, check_preferential
 from .hs_lookup import enrich_items_hs_codes
 from .sad_builder import create_sad_workbook
+from .sad_model import create_sad_model_workbook
 from .utils import normalize_hs_code, safe_filename_part
 
 log = logging.getLogger(__name__)
@@ -26,6 +27,7 @@ class GenerateResult:
     items_preview: list[dict] = field(default_factory=list)
     duty_summary: dict = field(default_factory=dict)
     analytics: dict = field(default_factory=dict)
+    duty_sheet_path: Path | None = None
 
     def to_response(self) -> dict:
         g = self.general
@@ -38,6 +40,7 @@ class GenerateResult:
             "item_count": len(self.items),
             "hs_auto_filled": self.hs_auto_filled,
             "download_url": f"/output/{self.output_path.name}",
+            "duty_sheet_url": f"/output/{self.duty_sheet_path.name}" if self.duty_sheet_path else "",
             "output_file": str(self.output_path),
             "items_preview": self.items_preview,
             "duty_summary": self.duty_summary,
@@ -84,7 +87,9 @@ async def generate(
     for it in items:
         it["hs_code"] = normalize_hs_code(it.get("hs_code"))
 
-    sad_bytes = create_sad_workbook({"general": general, "items": items}, preferential)
+    payload = {"general": general, "items": items}
+    sad_bytes, model_warnings = create_sad_model_workbook(payload)   # the ASYCUDA import file
+    duty_bytes = create_sad_workbook(payload, preferential)          # duty calculation sheet
 
     if output_path is None:
         out_dir = Path(output_dir or config.OUTPUT_DIR)
@@ -93,12 +98,14 @@ async def generate(
     else:
         output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_bytes(sad_bytes)
-    log.info("Saved %s", output_path)
+    duty_sheet_path = output_path.with_name(f"{output_path.stem}_duty{output_path.suffix}")
+    duty_sheet_path.write_bytes(duty_bytes)
+    log.info("Saved %s and %s", output_path, duty_sheet_path.name)
 
     preview, summary = build_items_preview_and_duty(
         items, preferential, currency=str(general.get("invoice_currency") or "USD")
     )
-    summary["warnings"] = validate({"general": general, "items": items})
+    summary["warnings"] = validate({"general": general, "items": items}) + model_warnings
     return GenerateResult(
         general=general,
         items=items,
@@ -107,4 +114,5 @@ async def generate(
         items_preview=preview,
         duty_summary=summary,
         analytics=build_analytics(general, items, preferential),
+        duty_sheet_path=duty_sheet_path,
     )

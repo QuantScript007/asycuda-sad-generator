@@ -75,7 +75,8 @@ def cmd_generate(args: argparse.Namespace) -> int:
     ))
     s = result.duty_summary
     cur = s.get("currency", "")
-    print(f"\n  Saved:        {result.output_path}")
+    print(f"\n  SAD (model):  {result.output_path}")
+    print(f"  Duty sheet:   {result.duty_sheet_path}")
     print(f"  Items:        {len(result.items)}  (HS auto-filled: {result.hs_auto_filled})")
     print(f"  Item value:   {s['total_item_value']:,.2f} {cur}")
     print(f"  Duty ({s['preferential']}): {s['total_duty']:,.2f} {cur}"
@@ -97,9 +98,14 @@ def cmd_generate(args: argparse.Namespace) -> int:
 
 def cmd_template(args: argparse.Namespace) -> int:
     from .sad_builder import create_input_template
+    from .sad_model import blank_model_bytes
 
-    out = Path(args.output)
-    out.write_bytes(create_input_template())
+    if args.simple:
+        out = Path(args.output or "SAD_Input_Template.xls")
+        out.write_bytes(create_input_template())
+    else:
+        out = Path(args.output or "SAD_MODEL.xls")
+        out.write_bytes(blank_model_bytes())
     print(f"Template written to {out.resolve()}")
     return 0
 
@@ -128,8 +134,11 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--no-lookup", action="store_true", help="skip online HS / tariff lookups")
     g.set_defaults(func=cmd_generate)
 
-    t = sub.add_parser("template", help="write the blank input template")
-    t.add_argument("-o", "--output", default="SAD_Input_Template.xls")
+    t = sub.add_parser("template", help="write a blank input file")
+    t.add_argument("-o", "--output", default=None,
+                   help="output path (default SAD_MODEL.xls, or SAD_Input_Template.xls with --simple)")
+    t.add_argument("--simple", action="store_true",
+                   help="the simple two-sheet template instead of the ASYCUDA SAD model")
     t.set_defaults(func=cmd_template)
     return p
 

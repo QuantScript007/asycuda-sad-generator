@@ -31,14 +31,17 @@ jobs:
         shell: pwsh
         run: |
           .\dist\ASYCUDA_SAD_Generator.exe --version
-          .\dist\ASYCUDA_SAD_Generator.exe template -o dist\SAD_Input_Template.xls
+          .\dist\ASYCUDA_SAD_Generator.exe template --simple -o dist\SAD_Input_Template.xls
+          .\dist\ASYCUDA_SAD_Generator.exe template -o dist\SAD_MODEL.xls
           .\dist\ASYCUDA_SAD_Generator.exe generate dist\SAD_Input_Template.xls --no-lookup -o dist\smoke.xls
           if (!(Test-Path dist\smoke.xls)) { throw "smoke test failed" }
+          if (!(Test-Path dist\smoke_duty.xls)) { throw "duty sheet missing" }
       - uses: actions/upload-artifact@v4
         with:
           name: ASYCUDA_SAD_Generator-windows
           path: |
             dist/ASYCUDA_SAD_Generator.exe
+            dist/SAD_MODEL.xls
             dist/SAD_Input_Template.xls
       - name: Attach to release
         if: startsWith(github.ref, 'refs/tags/')
@@ -46,4 +49,5 @@ jobs:
         with:
           files: |
             dist/ASYCUDA_SAD_Generator.exe
+            dist/SAD_MODEL.xls
             dist/SAD_Input_Template.xls

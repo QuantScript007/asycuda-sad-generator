@@ -59,15 +59,18 @@ def test_generated_sad_can_be_reimported(tmp_path):
         ],
     }
     result = _run(service.generate(data))
-    back = read_input_excel(result.output_path)
-    # The TOTAL row must not come back as a phantom item
-    assert len(back["items"]) == 2
-    first = back["items"][0]
-    assert first["hs_code"] == "6403990099"
-    assert first["description"] == "Sandals"
-    assert first["brand"] == "X"
-    assert first["no_packages"] == 3
-    assert first["duty_rate"] == 20
+    # Main file = the ASYCUDA SAD model; the duty worksheet sits next to it
+    assert result.duty_sheet_path.name == result.output_path.stem + "_duty.xls"
+    for path in (result.output_path, result.duty_sheet_path):
+        back = read_input_excel(path)
+        assert len(back["items"]) == 2          # no phantom TOTAL / sample rows
+        first = back["items"][0]
+        assert first["hs_code"] == "6403990099"
+        assert first["description"] == "Sandals"
+        assert first["brand"] == "X"
+        assert first["no_packages"] == 3
+        assert back["general"]["bl_number"] == "BL9"
+    assert read_input_excel(result.duty_sheet_path)["items"][0]["duty_rate"] == 20
 
 
 def test_sad_layout_and_preferential_totals():

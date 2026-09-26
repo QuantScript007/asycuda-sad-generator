@@ -10,7 +10,8 @@ Runs entirely on your own computer. No accounts, no credits.
 
 ## What it does
 
-- **Excel → SAD**: upload the input template (or a previously generated SAD) as `.xls` / `.xlsx`, get a SAD `.xls` with the *General Segment* and *Items* sheets.
+- **Excel → SAD**: upload the SAD model, the simple template or a previously generated SAD (`.xls` / `.xlsx`) and download the **official ASYCUDA SAD model filled in** — same sheets, formatting, dropdowns and field hints as the original model, ready to import.
+- **Duty worksheet**: a second download with item-by-item duty rate, duty amount and IPV tax lines.
 - **Manual entry**: fill the declaration and line items in the browser instead of Excel.
 - **HS code auto-fill**: items with no commodity code are matched by description against the Maldives Customs tariff.
 - **Duty calculation**: duty rate (box 43), duty amount and IPV tax lines (box 47) for every item, with a choice of **General**, **SAFTA** or **CMFTA** rates.
@@ -66,15 +67,19 @@ python sad_generator_local.py serve --port 8000 [--host 0.0.0.0] [--output-dir D
 python sad_generator_local.py generate shipment.xlsx -o SAD_out.xls --preferential safta
 python sad_generator_local.py generate shipment.xlsx --no-lookup     # offline: skip tariff lookups
 
-# Write a blank input template
-python sad_generator_local.py template -o SAD_Input_Template.xls
+# Write a blank SAD model (or the simple template with --simple)
+python sad_generator_local.py template -o SAD_MODEL.xls
 ```
 
 The `.exe` accepts the same commands, e.g. `ASYCUDA_SAD_Generator.exe generate shipment.xlsx`.
 
 ## Input format
 
-Download the template from the app (**⬇ Download Template**) or with the `template` command. It has two sheets:
+**SAD model (recommended).** Download it from the app (**⬇ SAD Model**) or with `python sad_generator_local.py template`. It is the same workbook the app outputs: fill the *General Segment* values (column C, currency in D) and one item per row on the *Items* sheet from row 4. Comments on the header cells explain each field; dropdowns and length limits come from ASYCUDA.
+
+The model file lives in `sad_generator/templates/SAD_MODEL.xls`. To use an updated model, replace that file or set `SAD_MODEL_PATH`.
+
+**Simple template.** A flat alternative (`template --simple`) with two sheets:
 
 | Sheet | Layout | Key columns |
 |---|---|---|
@@ -99,6 +104,7 @@ Environment variables (all optional):
 | `SAD_HS_MAX_CONCURRENCY` | `4` | Parallel tariff requests |
 | `SAD_HS_CACHE_TTL` | `21600` | Seconds to cache tariff results |
 | `SAD_MAX_UPLOAD_MB` | `20` | Upload size limit |
+| `SAD_MODEL_PATH` | bundled `SAD_MODEL.xls` | SAD model used for the download |
 
 ## API
 
@@ -112,7 +118,8 @@ Interactive docs at <http://localhost:8000/docs>. Main endpoints:
 | `GET` | `/api/hs-lookup?description=…` | HS code search (with duty / SAFTA / CMFTA rates) |
 | `GET` | `/api/hs-tariff/{hs_code}` | Tariff for one code |
 | `GET` | `/api/history` · `/output/{file}` · `DELETE /output/{file}` | Generated files |
-| `GET` | `/download-template` · `/api/health` | |
+| `GET` | `/download-model[?sample=true]` | Blank SAD model (or with sample rows) |
+| `GET` | `/download-template` · `/api/health` | Simple template · status |
 
 ## Project layout
 
@@ -122,7 +129,10 @@ sad_generator/
   cli.py          serve / generate / template commands
   service.py      generate pipeline shared by web + CLI
   excel_io.py     read template, native and generated SAD workbooks
-  sad_builder.py  write the SAD .xls and the input template
+  sad_model.py    fill the ASYCUDA SAD model (the main download)
+  xls_template.py edit .xls cells in place, keeping dropdowns & comments
+  sad_builder.py  write the duty worksheet and the simple template
+  templates/SAD_MODEL.xls  the ASYCUDA SAD model
   hs_lookup.py    Maldives Customs tariff search (cached, rate-limited)
   duty.py         duty calculation and totals
   static/index.html   the web UI
