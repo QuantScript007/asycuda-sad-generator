@@ -12,10 +12,9 @@ from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, Response
 from pydantic import BaseModel, Field
 
-from . import __version__, config, service
+from . import __version__, config, exchange, service
 from .analytics import build_analytics
 from .duty import PREFERENTIAL_KEYS
-from . import exchange
 from .excel_io import read_input_excel
 from .hs_lookup import lookup_hs_candidates, lookup_hs_tariff
 from .sad_builder import create_input_template
