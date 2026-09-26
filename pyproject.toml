@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "asycuda-sad-generator"
+dynamic = ["version"]
+description = "Generate ASYCUDA++ SAD import files from Excel or a web form, with Maldives Customs HS-code and duty lookup."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "pydantic>=2",
+    "xlrd==2.0.1",
+    "xlwt==1.3.0",
+    "openpyxl==3.1.5",
+    "httpx==0.28.1",
+    "beautifulsoup4==4.12.3",
+    "python-multipart>=0.0.9",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.5"]
+
+[project.scripts]
+sad-generator = "sad_generator.cli:main"
+
+[tool.setuptools]
+packages = ["sad_generator"]
+
+[tool.setuptools.dynamic]
+version = { attr = "sad_generator.__version__" }
+
+[tool.setuptools.package-data]
+sad_generator = ["static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "I"]
+ignore = ["B905", "B008", "E501", "E702"]

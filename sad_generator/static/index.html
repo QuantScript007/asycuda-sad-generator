@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASYCUDA SAD Generator — Local</title>
+<style>
+  :root {
+    --bg: #F8FAFC;
+    --bg-elev: #FFFFFF;
+    --bg-soft: #F1F5F9;
+    --border: #E2E8F0;
+    --border-strong: #CBD5E1;
+    --text: #0F172A;
+    --text-muted: #64748B;
+    --text-soft: #94A3B8;
+    --primary: #F97316;
+    --primary-hover: #EA6C0A;
+    --primary-soft: #FFEDD5;
+    --success: #16A34A;
+    --success-soft: #DCFCE7;
+    --danger: #DC2626;
+    --danger-soft: #FEE2E2;
+    --warning: #D97706;
+    --warning-soft: #FEF3C7;
+    --info: #2563EB;
+    --info-soft: #DBEAFE;
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+    --shadow-lg: 0 10px 30px rgba(15, 23, 42, 0.10);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+  }
+  [data-theme="dark"] {
+    --bg: #0B1120;
+    --bg-elev: #131C31;
+    --bg-soft: #1E293B;
+    --border: #1E293B;
+    --border-strong: #334155;
+    --text: #F1F5F9;
+    --text-muted: #94A3B8;
+    --text-soft: #64748B;
+    --primary: #FB923C;
+    --primary-hover: #FDBA74;
+    --primary-soft: #431407;
+    --success: #4ADE80;
+    --success-soft: #052E16;
+    --danger: #F87171;
+    --danger-soft: #450A0A;
+    --warning: #FBBF24;
+    --warning-soft: #451A03;
+    --info: #60A5FA;
+    --info-soft: #172554;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.55;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Top Bar */
+  .topbar {
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(8px);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-logo {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, var(--primary), #FB923C);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 800; font-size: 16px;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+  }
+  .brand-title { font-weight: 700; font-size: 15px; line-height: 1.1; }
+  .brand-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .top-actions { display: flex; align-items: center; gap: 8px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px;
+    background: var(--success-soft);
+    color: var(--success);
+    border-radius: 999px;
+    font-size: 11px; font-weight: 600;
+  }
+  .pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+  .icon-btn {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .icon-btn:hover { background: var(--bg-soft); color: var(--text); border-color: var(--border-strong); }
+
+  /* Layout */
+  .container { max-width: 1320px; margin: 0 auto; padding: 32px 24px 64px; }
+  .layout-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 1024px) { .layout-grid { grid-template-columns: 1fr; } }
+
+  /* Hero */
+  .hero { margin-bottom: 28px; }
+  .hero h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; }
+  .hero p { color: var(--text-muted); font-size: 15px; margin: 0; max-width: 720px; }
+
+  /* Workflow steps */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 768px) { .steps { grid-template-columns: 1fr; } }
+  .step {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    position: relative;
+    transition: all 0.2s;
+  }
+  .step.active { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+  .step.done { border-color: var(--success); background: var(--success-soft); }
+  .step-num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--bg-soft);
+    color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px;
+    margin-bottom: 10px;
+  }
+  .step.active .step-num { background: var(--primary); color: white; }
+  .step.done .step-num { background: var(--success); color: white; }
+  .step.done .step-num::after { content: '✓'; }
+  .step.done .step-num span { display: none; }
+  .step-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .step-desc { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+  /* Card */
+  .card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .card-title { font-size: 16px; font-weight: 700; margin: 0; }
+  .card-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Drop zone */
+  .dropzone {
+    border: 2px dashed var(--border-strong);
+    border-radius: var(--radius-md);
+    padding: 36px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--bg-soft);
+  }
+  .dropzone:hover, .dropzone.dragging {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+  .dropzone-icon {
+    width: 52px; height: 52px;
+    margin: 0 auto 12px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .dropzone-text { font-weight: 600; margin-bottom: 4px; }
+  .dropzone-hint { font-size: 12px; color: var(--text-muted); }
+  .dropzone .browse-link { color: var(--primary); text-decoration: underline; }
+
+  .file-pill {
+    display: none;
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    align-items: center;
+    gap: 12px;
+  }
+  .file-pill.shown { display: flex; }
+  .file-icon {
+    width: 36px; height: 36px;
+    background: var(--info-soft);
+    color: var(--info);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 11px;
+  }
+  .file-meta { flex: 1; min-width: 0; }
+  .file-name { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file-size { font-size: 11px; color: var(--text-muted); }
+  .file-clear {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  .file-clear:hover { color: var(--danger); background: var(--danger-soft); }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    text-decoration: none;
+    font-family: inherit;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover:not(:disabled) { background: var(--primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .btn-secondary { background: var(--bg-elev); color: var(--text); border-color: var(--border); }
+  .btn-secondary:hover:not(:disabled) { background: var(--bg-soft); border-color: var(--border-strong); }
+  .btn-ghost { background: transparent; color: var(--text-muted); }
+  .btn-ghost:hover { background: var(--bg-soft); color: var(--text); }
+  .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* Stats grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  .stat {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px;
+  }
+  .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .stat-value { font-size: 22px; font-weight: 800; margin-top: 4px; letter-spacing: -0.02em; }
+  .stat-value.accent { color: var(--primary); }
+  .stat-value.success { color: var(--success); }
+  .stat-value.info { color: var(--info); }
+
+  /* Table */
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    background: var(--bg-soft);
+    text-align: left;
+    padding: 10px 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg-soft); }
+  .code-tag {
+    display: inline-block;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', Consolas, monospace;
+    background: var(--bg-soft);
+    color: var(--text);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+  }
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .tag-success { background: var(--success-soft); color: var(--success); }
+  .tag-warning { background: var(--warning-soft); color: var(--warning); }
+  .tag-info { background: var(--info-soft); color: var(--info); }
+
+  /* Alert / banner */
+  .alert {
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .alert-success { background: var(--success-soft); color: var(--success); border: 1px solid var(--success); }
+  .alert-danger { background: var(--danger-soft); color: var(--danger); border: 1px solid var(--danger); }
+  .alert-info { background: var(--info-soft); color: var(--info); border: 1px solid var(--info); }
+  .alert-warning { background: var(--warning-soft); color: var(--warning); border: 1px solid var(--warning); }
+  .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* Progress */
+  .progress-wrap { margin: 16px 0; }
+  .progress-track {
+    height: 6px;
+    background: var(--bg-soft);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), #FB923C);
+    border-radius: 999px;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+  .progress-text { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+
+  /* HS Lookup */
+  .hs-input-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-elev);
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    transition: border-color 0.15s;
+  }
+  .input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+
+  /* History sidebar */
+  .history-item {
+    padding: 12px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 8px;
+    transition: all 0.15s;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .history-item:hover { border-color: var(--primary); background: var(--bg-elev); }
+  .history-name { font-size: 12px; font-weight: 600; margin-bottom: 4px; word-break: break-all; }
+  .history-meta { font-size: 11px; color: var(--text-muted); display: flex; gap: 8px; align-items: center; }
+
+  /* Result card */
+  .result-card {
+    background: linear-gradient(135deg, var(--success-soft) 0%, var(--bg-elev) 100%);
+    border: 1px solid var(--success);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-top: 16px;
+  }
+  .result-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .result-icon {
+    width: 44px; height: 44px;
+    background: var(--success);
+    color: white;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .result-title { font-size: 18px; font-weight: 800; margin: 0; }
+  .result-sub { font-size: 12px; color: var(--text-muted); }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin: 14px 0;
+  }
+  .info-cell {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+  }
+  .info-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .info-value { font-size: 13px; font-weight: 600; margin-top: 2px; word-break: break-all; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .tab {
+    padding: 10px 14px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    font-family: inherit;
+    margin-bottom: -1px;
+  }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .tab:hover:not(.active) { color: var(--text); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+  .empty-icon { font-size: 28px; margin-bottom: 8px; opacity: 0.5; }
+
+  /* Spinner */
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Hide util */
+  .hidden { display: none !important; }
+
+  .pref-wrap { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
+  .pref-select { padding: 8px 10px; border: 1px solid var(--border, #E2E8F0); border-radius: 8px; background: var(--bg-elev); color: inherit; font: inherit; font-weight: 500; }
+  .rate-cell { text-align: right; white-space: nowrap; }
+  /* Footer */
+  .footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .footer a { color: var(--info); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  /* Key-value list for general info */
+  .kv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px;
+  }
+  .kv {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 10px;
+    background: var(--bg-soft);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .kv-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+  .kv-value { font-size: 13px; font-weight: 500; margin-top: 2px; word-break: break-word; }
+
+  /* Anchor section divider */
+  .section-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 20px 0;
+  }
+
+  /* Mode switcher (Upload | Manual Entry) */
+  .mode-switch {
+    display: inline-flex;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 4px;
+    gap: 4px;
+  }
+  .mode-btn {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 13px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .mode-btn.active {
+    background: var(--bg-elev);
+    color: var(--primary);
+    box-shadow: var(--shadow-sm);
+  }
+  .mode-btn:hover:not(.active) { color: var(--text); }
+
+  /* Form */
+  .form-section {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 14px;
+    background: var(--bg-soft);
+  }
+  .form-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0 0 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+  }
+  .form-field { display: flex; flex-direction: column; }
+  .form-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .form-label .req { color: var(--danger); margin-left: 2px; }
+  .form-label .hint { color: var(--text-soft); text-transform: none; font-weight: 400; letter-spacing: 0; margin-left: 4px; }
+  .form-input, .form-select {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elev);
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+  }
+  .form-input.half { max-width: 110px; }
+  .field-pair { display: flex; gap: 6px; align-items: flex-end; }
+  .field-pair .form-field { flex: 1; min-width: 0; }
+  .field-pair .form-field.fixed { flex: 0 0 100px; }
+
+  /* Items editor table */
+  .items-edit-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 12px;
+  }
+  .items-edit-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    min-width: 900px;
+  }
+  .items-edit-table th {
+    background: var(--bg-soft);
+    padding: 8px 6px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    white-space: nowrap;
+  }
+  .items-edit-table td { padding: 4px 4px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .items-edit-table tr:last-child td { border-bottom: none; }
+  .items-edit-table input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text);
+    font-size: 12px;
+    font-family: inherit;
+  }
+  .items-edit-table input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--bg-elev);
+  }
+  .items-edit-table input[type=number] { text-align: right; }
+  .items-edit-table .col-idx { text-align: center; font-weight: 600; color: var(--text-muted); width: 32px; }
+  .items-edit-table .col-act { width: 36px; text-align: center; }
+  .item-del {
+    background: transparent;
+    border: none;
+    color: var(--text-soft);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  .item-del:hover { color: var(--danger); background: var(--danger-soft); }
+  .item-del:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .form-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--bg-soft);
+    border-radius: var(--radius-sm);
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .form-summary strong { color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-logo">SAD</div>
+    <div>
+      <div class="brand-title">ASYCUDA SAD Generator</div>
+      <div class="brand-sub">Local Edition · v{{VERSION}}</div>
+    </div>
+  </div>
+  <div class="top-actions">
+    <span class="pill">Server Online</span>
+    <button class="icon-btn" onclick="window.open('/docs', '_blank')" title="API docs">📖</button>
+    <button class="icon-btn" id="themeToggle" title="Toggle theme">🌙</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="hero">
+    <h1>Generate ASYCUDA SAD files in seconds</h1>
+    <p>Upload your filled Excel template (or a native ASYCUDA file), and we'll parse it, auto-lookup any missing HS codes against the Maldives Customs tariff database, and produce a ready-to-import SAD workbook — all on your local machine.</p>
+  </div>
+
+  <div class="steps">
+    <div class="step active" id="step1">
+      <div class="step-num"><span>1</span></div>
+      <div class="step-title">Download Template</div>
+      <div class="step-desc">Grab the blank Excel template with sample data and field hints.</div>
+    </div>
+    <div class="step" id="step2">
+      <div class="step-num"><span>2</span></div>
+      <div class="step-title">Fill Your Data</div>
+      <div class="step-desc">Enter shipment header info and line items. HS codes optional — we auto-look them up.</div>
+    </div>
+    <div class="step" id="step3">
+      <div class="step-num"><span>3</span></div>
+      <div class="step-title">Upload & Generate</div>
+      <div class="step-desc">Drop your file here and receive a ready-to-import SAD workbook.</div>
+    </div>
+  </div>
+
+  <div class="layout-grid">
+    <!-- Main column -->
+    <div>
+      <!-- Download template card -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Step 1 · Get the input template</h2>
+            <div class="card-sub">Two sheets: <code>Declaration</code> (header) + <code>Items</code> (line items). Sample data included.</div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="/download-template" download>⬇ Download Template (.xls)</a>
+          <button class="btn btn-secondary" onclick="switchToStep2()">I already have a file →</button>
+        </div>
+      </div>
+
+      <!-- Mode switcher -->
+      <div class="card" style="padding: 16px 20px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div style="font-weight: 700; font-size: 14px; margin-bottom: 2px;">Choose your input method</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Upload an Excel file, or fill out a form manually — both produce the same SAD output.</div>
+          </div>
+          <div class="mode-switch">
+            <button class="mode-btn active" id="modeUpload" onclick="switchMode('upload')">📁 Upload Excel</button>
+            <button class="mode-btn" id="modeManual" onclick="switchMode('manual')">✍️ Manual Entry</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload card -->
+      <div class="card" id="uploadCard">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Step 2 · Upload your Excel file</h2>
+            <div class="card-sub">Supports .xls and .xlsx. Native ASYCUDA SAD format or our template — both work.</div>
+          </div>
+        </div>
+
+        <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+          <div class="dropzone-icon">📁</div>
+          <div class="dropzone-text">Drag &amp; drop your file here</div>
+          <div class="dropzone-hint">or <span class="browse-link">browse your computer</span> · .xls / .xlsx · up to 10 MB</div>
+        </div>
+        <input type="file" id="fileInput" accept=".xls,.xlsx" class="hidden">
+
+        <div class="file-pill" id="filePill">
+          <div class="file-icon">XLS</div>
+          <div class="file-meta">
+            <div class="file-name" id="fileName">—</div>
+            <div class="file-size" id="fileSize">—</div>
+          </div>
+          <button class="file-clear" onclick="clearFile(event)" title="Remove">✕</button>
+        </div>
+
+        <div class="btn-row" style="margin-top: 16px;">
+          <button class="btn btn-secondary" id="previewBtn" onclick="previewFile()" disabled>🔍 Preview Data</button>
+          <label class="pref-wrap" title="Which tariff column to use when calculating customs duty">Tariff
+            <select id="prefSelect" class="pref-select">
+              <option value="general">General rate</option>
+              <option value="safta">SAFTA preferential</option>
+              <option value="cmfta">CMFTA preferential</option>
+            </select></label>
+          <button class="btn btn-primary" id="generateBtn" onclick="generateSAD()" disabled>⚡ Generate SAD File</button>
+        </div>
+
+        <div id="uploadAlert"></div>
+      </div>
+
+      <!-- Manual Entry card (hidden by default) -->
+      <div class="card hidden" id="manualCard">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Manual Entry · SAD Declaration Form</h2>
+            <div class="card-sub">Fill in the form below — fields are numbered to match the official SAD layout. Hover over a box number for the field name. Customs duty % auto-fetched from Maldives Customs when HS code is entered.</div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-secondary" onclick="loadSampleForm()" title="Fill with sample data">✨ Sample</button>
+            <button class="btn btn-ghost" onclick="resetForm()" title="Clear all fields">↺ Clear</button>
+          </div>
+        </div>
+
+        <div id="manualAlert"></div>
+
+        <!-- ╔═══ BOX 1 + 2 + 5 + 6 + 7 + 8 + 9: Header Row ═══╗ -->
+        <div class="form-section">
+          <h3 class="form-section-title">📋 Declaration Header (Boxes 1–9)</h3>
+          <div class="form-grid">
+            <div class="field-pair">
+              <div class="form-field fixed" style="flex: 0 0 80px;">
+                <label class="form-label">Box 1 <span class="hint">Type</span></label>
+                <select class="form-select" data-f="decl_type">
+                  <option value="IM" selected>IM</option>
+                  <option value="EX">EX</option>
+                  <option value="TR">TR</option>
+                </select>
+              </div>
+              <div class="form-field fixed" style="flex: 0 0 70px;">
+                <label class="form-label">Subtype</label>
+                <input type="number" class="form-input" data-f="decl_subtype" value="4" min="0" max="9">
+              </div>
+              <div class="form-field">
+                <label class="form-label">Customs Office</label>
+                <input type="text" class="form-input" data-f="customs_office" placeholder="00MP" value="00MP">
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 2 <span class="hint">Exporter</span> <span class="req">*</span></label>
+              <input type="text" class="form-input" data-f="exporter" placeholder="Supplier Co Ltd, Shanghai, China">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 8 <span class="hint">Consignee Code</span></label>
+              <input type="text" class="form-input" data-f="consignee_code" placeholder="C8888" value="C8888">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 8 <span class="hint">Consignee Name</span></label>
+              <input type="text" class="form-input" data-f="consignee_name" placeholder="RC Maldives Pvt Ltd, Malé">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 14 <span class="hint">Declarant Code</span></label>
+              <input type="text" class="form-input" data-f="declarant_code" placeholder="C8888" value="C8888">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 7 <span class="hint">Reference / BL No.</span> <span class="req">*</span></label>
+              <input type="text" class="form-input" data-f="bl_number" placeholder="BL123456">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 7 <span class="hint">Manifest No.</span></label>
+              <input type="text" class="form-input" data-f="manifest_no" placeholder="">
+            </div>
+            <div class="field-pair">
+              <div class="form-field fixed" style="flex: 0 0 90px;">
+                <label class="form-label">Box 5 <span class="hint">Items</span></label>
+                <input type="number" class="form-input" id="formItemsCount" readonly value="0" style="background: var(--bg-soft);">
+              </div>
+              <div class="form-field">
+                <label class="form-label">Box 6 <span class="hint">Total Packages</span></label>
+                <input type="number" class="form-input" data-f="total_packages" placeholder="auto" min="0" step="1">
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 9 <span class="hint">Financial No.</span></label>
+              <input type="text" class="form-input" data-f="financial" placeholder="">
+            </div>
+          </div>
+        </div>
+
+        <!-- ╔═══ BOX 10-17: Countries ═══╗ -->
+        <div class="form-section">
+          <h3 class="form-section-title">🌍 Countries &amp; Trading (Boxes 10–17)</h3>
+          <div class="form-grid">
+            <div class="form-field">
+              <label class="form-label">Box 11 <span class="hint">Trading Country</span></label>
+              <input type="text" class="form-input" data-f="trading_country" placeholder="CN" maxlength="3" style="text-transform: uppercase;">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 15 <span class="hint">Country of Export</span> <span class="req">*</span></label>
+              <input type="text" class="form-input" data-f="country_of_export" placeholder="CN" maxlength="3" style="text-transform: uppercase;">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 15a <span class="hint">C.E. Code</span></label>
+              <input type="text" class="form-input" data-f="ce_code" placeholder="">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 17 <span class="hint">C.D. Code</span></label>
+              <input type="text" class="form-input" data-f="cd_code" placeholder="">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 17 <span class="hint">Country of Destination</span></label>
+              <input type="text" class="form-input" data-f="country_of_destination" placeholder="MV" value="MV" maxlength="3" style="text-transform: uppercase;">
+            </div>
+          </div>
+        </div>
+
+        <!-- ╔═══ BOX 18-30: Transport ═══╗ -->
+        <div class="form-section">
+          <h3 class="form-section-title">🚢 Transport &amp; Delivery (Boxes 18–30)</h3>
+          <div class="form-grid">
+            <div class="form-field">
+              <label class="form-label">Box 18 <span class="hint">Means of Transport (arrival)</span></label>
+              <input type="text" class="form-input" data-f="vessel_name" placeholder="MV Ocean Star / IMO 1234567">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 21 <span class="hint">Active Means Crossing Border</span></label>
+              <input type="text" class="form-input" data-f="active_means" placeholder="MV Ocean Star">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 18/21 <span class="hint">Nationality</span></label>
+              <input type="text" class="form-input" data-f="carrier_nationality" placeholder="MV" value="MV" maxlength="3" style="text-transform: uppercase;">
+            </div>
+            <div class="field-pair">
+              <div class="form-field">
+                <label class="form-label">Box 19 <span class="hint">Ctr.</span></label>
+                <input type="text" class="form-input" data-f="ctr" placeholder="">
+              </div>
+              <div class="form-field fixed" style="flex: 0 0 100px;">
+                <label class="form-label">Box 20 <span class="hint">Delivery Terms</span></label>
+                <select class="form-select" data-f="delivery_terms">
+                  <option value="CIF" selected>CIF</option>
+                  <option value="FOB">FOB</option>
+                  <option value="EXW">EXW</option>
+                  <option value="CFR">CFR</option>
+                  <option value="CPT">CPT</option>
+                  <option value="CIP">CIP</option>
+                  <option value="DAP">DAP</option>
+                  <option value="DDP">DDP</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-pair">
+              <div class="form-field">
+                <label class="form-label">Box 22 <span class="hint">Total Amount Invoiced</span></label>
+                <input type="number" class="form-input" data-f="invoice_amount" placeholder="0.00" step="0.01">
+              </div>
+              <div class="form-field fixed" style="flex: 0 0 90px;">
+                <label class="form-label">Box 22 <span class="hint">Currency</span></label>
+                <select class="form-select" data-f="invoice_currency">
+                  <option value="USD" selected>USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                  <option value="MVR">MVR</option>
+                  <option value="CNY">CNY</option>
+                  <option value="JPY">JPY</option>
+                  <option value="AUD">AUD</option>
+                  <option value="INR">INR</option>
+                  <option value="AED">AED</option>
+                  <option value="SGD">SGD</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 23 <span class="hint">Exchange Rate</span></label>
+              <input type="number" class="form-input" data-f="exchange_rate" placeholder="15.42" step="0.0001">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 24 <span class="hint">Nature of Transaction</span></label>
+              <input type="text" class="form-input" data-f="nature_transaction" placeholder="11" maxlength="2">
+            </div>
+            <div class="field-pair">
+              <div class="form-field">
+                <label class="form-label">Box 25 <span class="hint">Mode of Transport</span></label>
+                <select class="form-select" data-f="mode_transport">
+                  <option value="1" selected>1 — Sea</option>
+                  <option value="2">2 — Air</option>
+                  <option value="3">3 — Road</option>
+                  <option value="4">4 — Rail</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Box 26 <span class="hint">Inland Mode</span></label>
+                <input type="text" class="form-input" data-f="inland_mode" placeholder="2" maxlength="2">
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 27 <span class="hint">Place of Loading/Unloading</span></label>
+              <input type="text" class="form-input" data-f="place_discharge" placeholder="MLE">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 28 <span class="hint">Financial &amp; Banking</span></label>
+              <input type="text" class="form-input" data-f="financial_banking" placeholder="Bank code / terms of payment">
+            </div>
+            <div class="field-pair">
+              <div class="form-field">
+                <label class="form-label">Box 29 <span class="hint">Office of Entry/Exit</span></label>
+                <input type="text" class="form-input" data-f="office_entry_exit" placeholder="00MP" value="00MP">
+              </div>
+              <div class="form-field">
+                <label class="form-label">Box 30 <span class="hint">Location of Goods</span></label>
+                <input type="text" class="form-input" data-f="location_goods" placeholder="HBW">
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Box 48 <span class="hint">Pre-Payment Code</span></label>
+              <input type="text" class="form-input" data-f="prepayment_code" placeholder="">
+            </div>
+          </div>
+        </div>
+
+        <!-- ╔═══ BOX 31-47: Line Items (with duty!) ═══╗ -->
+        <div class="form-section">
+          <h3 class="form-section-title">📦 Line Items (Boxes 31–47) · with Customs Duty</h3>
+          <div class="form-summary" id="itemsSummary">
+            <span><strong>0</strong> items</span> ·
+            <span>Total invoice value: <strong>$0.00</strong></span> ·
+            <span>Total packages: <strong>0</strong></span> ·
+            <span style="color: var(--primary);">Total customs duty: <strong>$0.00</strong></span> ·
+            <span style="color: var(--success);">Grand total: <strong>$0.00</strong></span>
+          </div>
+          <div class="items-edit-wrap">
+            <table class="items-edit-table" id="itemsTable">
+              <thead>
+                <tr>
+                  <th class="col-idx">Box 32<br>#</th>
+                  <th style="min-width: 130px;">Box 33<br>HS Code</th>
+                  <th style="min-width: 220px;">Box 31<br>Description of Goods</th>
+                  <th style="min-width: 70px;">Box 34<br>Origin</th>
+                  <th style="min-width: 80px;">Box 35<br>Gross Mass</th>
+                  <th style="min-width: 90px;">Box 42<br>Item Price</th>
+                  <th style="min-width: 70px;">Box 31<br>Packages</th>
+                  <th style="min-width: 90px; background: var(--primary-soft); color: var(--primary);">Box 43<br>Duty Rate %</th>
+                  <th style="min-width: 100px; background: var(--primary-soft); color: var(--primary);">Box 47<br>Duty Amount</th>
+                  <th style="min-width: 100px; background: var(--success-soft); color: var(--success);">Total w/ Duty</th>
+                  <th style="min-width: 80px;">Box 41<br>Brand</th>
+                  <th style="min-width: 80px;">Box 31<br>Model</th>
+                  <th class="col-act"></th>
+                </tr>
+              </thead>
+              <tbody id="itemsBody"></tbody>
+              <tfoot>
+                <tr id="itemsTotalsRow" style="background: var(--bg-soft); font-weight: 700;">
+                  <td colspan="5" style="text-align: right; padding: 10px 12px;">TOTALS →</td>
+                  <td id="totalItemPrice" style="text-align: right; padding: 10px 12px;">$0.00</td>
+                  <td id="totalPackages" style="text-align: right; padding: 10px 12px;">0</td>
+                  <td id="totalDutyRate" style="text-align: right; padding: 10px 12px; color: var(--primary);">—</td>
+                  <td id="totalDutyAmount" style="text-align: right; padding: 10px 12px; color: var(--primary);">$0.00</td>
+                  <td id="totalGrandTotal" style="text-align: right; padding: 10px 12px; color: var(--success);">$0.00</td>
+                  <td colspan="3"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-secondary" onclick="addFormItem()">+ Add Item</button>
+            <button class="btn btn-secondary" onclick="addFormItem(5)">+ Add 5 Items</button>
+            <button class="btn btn-ghost" onclick="lookupAllDuties()" id="lookupAllBtn">🔍 Lookup All Duties</button>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">
+            💡 <strong>Tip:</strong> Enter an HS code (8+ digits) and tab out — duty % is fetched live from Maldives Customs. Items without HS code will auto-resolve on Generate.
+          </div>
+        </div>
+
+        <!-- ╔═══ Financial details ═══╗ -->
+        <div class="form-section">
+          <h3 class="form-section-title">💰 Additional Costs (Boxes 22, 24, 45)</h3>
+          <div class="form-grid">
+            <div class="field-pair">
+              <div class="form-field">
+                <label class="form-label">Internal Freight</label>
+                <input type="number" class="form-input" data-f="internal_freight" placeholder="0.00" step="0.01">
+              </div>
+              <div class="form-field fixed" style="flex: 0 0 90px;">
+                <label class="form-label">Currency</label>
+                <select class="form-select" data-f="freight_currency">
+                  <option value="USD" selected>USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="MVR">MVR</option>
+                  <option value="CNY">CNY</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-pair">
+              <div class="form-field">
+                <label class="form-label">External Freight</label>
+                <input type="number" class="form-input" data-f="external_freight" placeholder="0.00" step="0.01">
+              </div>
+              <div class="form-field fixed" style="flex: 0 0 90px;">
+                <label class="form-label">Currency</label>
+                <select class="form-select" data-f="freight_currency2">
+                  <option value="USD" selected>USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="MVR">MVR</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-pair">
+              <div class="form-field">
+                <label class="form-label">Insurance</label>
+                <input type="number" class="form-input" data-f="insurance" placeholder="0.00" step="0.01">
+              </div>
+              <div class="form-field fixed" style="flex: 0 0 90px;">
+                <label class="form-label">Currency</label>
+                <select class="form-select" data-f="insurance_currency">
+                  <option value="USD" selected>USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="MVR">MVR</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-pair">
+              <div class="form-field">
+                <label class="form-label">Other Costs</label>
+                <input type="number" class="form-input" data-f="other_costs" placeholder="0.00" step="0.01">
+              </div>
+              <div class="form-field fixed" style="flex: 0 0 90px;">
+                <label class="form-label">Currency</label>
+                <select class="form-select" data-f="other_costs_currency">
+                  <option value="USD" selected>USD</option>
+                  <option value="EUR">EUR</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Deductions</label>
+              <input type="number" class="form-input" data-f="deductions" placeholder="0.00" step="0.01">
+            </div>
+            <div class="field-pair">
+              <div class="form-field">
+                <label class="form-label">Box 36 <span class="hint">Preference</span></label>
+                <input type="text" class="form-input" data-f="preference" placeholder="100" maxlength="3">
+              </div>
+              <div class="form-field">
+                <label class="form-label">Box 37 <span class="hint">Procedure</span></label>
+                <input type="text" class="form-input" data-f="procedure" placeholder="4000" value="4000">
+              </div>
+              <div class="form-field fixed" style="flex: 0 0 70px;">
+                <label class="form-label">Add'l</label>
+                <input type="text" class="form-input" data-f="procedure_add" placeholder="000" value="000">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-top: 16px;">
+          <label class="pref-wrap" title="Which tariff column to use when calculating customs duty">Tariff
+            <select id="manualPrefSelect" class="pref-select">
+              <option value="general">General rate</option>
+              <option value="safta">SAFTA preferential</option>
+              <option value="cmfta">CMFTA preferential</option>
+            </select></label>
+          <button class="btn btn-primary" id="manualGenerateBtn" onclick="generateManualSAD()">⚡ Generate SAD from Form</button>
+        </div>
+      </div>
+
+      <!-- Preview card (hidden until preview) -->
+      <div class="card hidden" id="previewCard">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">File Preview</h2>
+            <div class="card-sub" id="previewSub">Parsed contents of your Excel file</div>
+          </div>
+          <button class="btn btn-ghost" onclick="closePreview()">Close</button>
+        </div>
+
+        <div class="stats-grid" id="previewStats"></div>
+
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab(event, 'tab-general')">Declaration Header</button>
+          <button class="tab" onclick="switchTab(event, 'tab-items')">Line Items</button>
+        </div>
+
+        <div class="tab-panel active" id="tab-general">
+          <div id="generalContent"><div class="empty"><div class="empty-icon">📋</div>No header data found</div></div>
+        </div>
+
+        <div class="tab-panel" id="tab-items">
+          <div id="itemsContent"><div class="empty"><div class="empty-icon">📦</div>No items found</div></div>
+        </div>
+      </div>
+
+      <!-- Processing card (hidden) -->
+      <div class="card hidden" id="processingCard">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Generating SAD…</h2>
+            <div class="card-sub">Parsing Excel · Looking up HS codes · Building workbook</div>
+          </div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+          <div class="progress-text" id="progressText">Starting…</div>
+        </div>
+      </div>
+
+      <!-- Result card (hidden) -->
+      <div class="hidden" id="resultWrap">
+        <div class="result-card">
+          <div class="result-header">
+            <div class="result-icon">✓</div>
+            <div>
+              <h3 class="result-title">SAD file generated successfully</h3>
+              <div class="result-sub" id="resultSub">Your file is ready to download</div>
+            </div>
+          </div>
+
+          <div id="resultWarnings"></div>
+        <div class="info-grid" id="resultInfo"></div>
+
+          <div class="section-divider"></div>
+
+          <div id="itemsPreviewWrap"></div>
+
+          <div class="btn-row" style="margin-top: 16px;">
+            <a class="btn btn-primary" id="downloadLink" href="#" download>⬇ Download SAD File</a>
+            <button class="btn btn-secondary" onclick="resetAll()">Generate Another</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- HS Lookup tool -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">HS Code Lookup Tool</h2>
+            <div class="card-sub">Search the Maldives Customs tariff database by description (live).</div>
+          </div>
+        </div>
+        <div class="hs-input-row">
+          <input type="text" class="input" id="hsInput" placeholder="e.g. rice, cement, laptop, frozen fish…" onkeydown="if(event.key==='Enter')hsLookup()">
+          <button class="btn btn-primary" id="hsBtn" onclick="hsLookup()">🔍 Search</button>
+        </div>
+        <div id="hsResults"></div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Recent Generations</h2>
+            <div class="card-sub">Last 50 SAD files produced on this server</div>
+          </div>
+          <button class="icon-btn" onclick="loadHistory()" title="Refresh">↻</button>
+        </div>
+        <div id="historyList"><div class="empty"><div class="empty-icon">🗂</div>No files yet</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Quick Reference</h2>
+            <div class="card-sub">Common field values</div>
+          </div>
+        </div>
+        <div class="kv-grid">
+          <div class="kv"><div class="kv-label">Customs Office</div><div class="kv-value">00MP (Malé Port)</div></div>
+          <div class="kv"><div class="kv-label">Decl Type</div><div class="kv-value">IM (Import) / EX (Export)</div></div>
+          <div class="kv"><div class="kv-label">Procedure</div><div class="kv-value">4000 (Home Use)</div></div>
+          <div class="kv"><div class="kv-label">Delivery Terms</div><div class="kv-value">CIF / FOB / EXW</div></div>
+          <div class="kv"><div class="kv-label">Carrier Nationality</div><div class="kv-value">MV (Maldives)</div></div>
+          <div class="kv"><div class="kv-label">Mode of Transport</div><div class="kv-value">1 = Sea, 2 = Air</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">API &amp; Resources</h2>
+            <div class="card-sub">For developers and integrators</div>
+          </div>
+        </div>
+        <div class="btn-row" style="flex-direction: column; align-items: stretch;">
+          <a class="btn btn-secondary" href="/docs" target="_blank">📜 Swagger API Docs</a>
+          <a class="btn btn-secondary" href="/download-template">⬇ Download Template</a>
+          <a class="btn btn-secondary" href="/api/history" target="_blank">🗂 History JSON</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>ASYCUDA SAD Generator · Local Edition · No external credits required</div>
+    <div>Output folder: <code id="outputDir">./sad_output/</code> · <a href="/docs" target="_blank">API</a></div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let selectedFile = null;
+
+// ── Theme toggle ───────────────────────────────────────
+(function initTheme() {
+  const saved = localStorage.getItem('sad-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  $('themeToggle').textContent = saved === 'dark' ? '☀' : '🌙';
+})();
+$('themeToggle').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('sad-theme', next);
+  $('themeToggle').textContent = next === 'dark' ? '☀' : '🌙';
+});
+
+// ── Drag & drop ────────────────────────────────────────
+const dz = $('dropzone');
+['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => {
+  e.preventDefault(); e.stopPropagation();
+  dz.classList.add('dragging');
+}));
+['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => {
+  e.preventDefault(); e.stopPropagation();
+  dz.classList.remove('dragging');
+}));
+dz.addEventListener('drop', e => {
+  const f = e.dataTransfer.files[0];
+  if (f) handleFile(f);
+});
+
+$('fileInput').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (f) handleFile(f);
+});
+
+function handleFile(file) {
+  const name = file.name.toLowerCase();
+  if (!name.endsWith('.xls') && !name.endsWith('.xlsx')) {
+    showAlert('uploadAlert', 'danger', 'Unsupported file type. Please upload .xls or .xlsx files only.');
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    showAlert('uploadAlert', 'danger', 'File too large. Maximum size is 10 MB.');
+    return;
+  }
+  selectedFile = file;
+  $('fileName').textContent = file.name;
+  $('fileSize').textContent = formatBytes(file.size);
+  $('filePill').classList.add('shown');
+  $('previewBtn').disabled = false;
+  $('generateBtn').disabled = false;
+  showAlert('uploadAlert', 'success', 'File ready. Click Preview to inspect parsed data, or Generate to build the SAD.');
+  switchToStep2();
+}
+
+function clearFile(e) {
+  e.stopPropagation();
+  selectedFile = null;
+  $('fileInput').value = '';
+  $('filePill').classList.remove('shown');
+  $('previewBtn').disabled = true;
+  $('generateBtn').disabled = true;
+  $('uploadAlert').innerHTML = '';
+  closePreview();
+}
+
+function money(n, cur) {
+  const v = Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return cur ? `${v} ${escapeHtml(cur)}` : v;
+}
+
+function formatBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+  return (b / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+// ── Alerts ─────────────────────────────────────────────
+function showAlert(targetId, type, msg) {
+  const icons = { success: '✓', danger: '✕', info: 'ℹ', warning: '⚠' };
+  $(targetId).innerHTML = `<div class="alert alert-${type}"><span class="alert-icon">${icons[type]}</span><span>${msg}</span></div>`;
+}
+
+// ── Step indicators ────────────────────────────────────
+function switchToStep2() {
+  $('step1').classList.add('done');
+  $('step2').classList.add('active');
+}
+function switchToStep3() {
+  $('step1').classList.add('done');
+  $('step2').classList.add('done');
+  $('step3').classList.add('active');
+}
+
+// ── Tabs ───────────────────────────────────────────────
+function switchTab(e, panelId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  e.target.classList.add('active');
+  $(panelId).classList.add('active');
+}
+
+// ── Preview ────────────────────────────────────────────
+async function previewFile() {
+  if (!selectedFile) return;
+  $('previewBtn').disabled = true;
+  $('previewBtn').innerHTML = '<span class="spinner"></span> Parsing…';
+  try {
+    const fd = new FormData();
+    fd.append('file', selectedFile);
+    const r = await fetch('/api/preview', { method: 'POST', body: fd });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || 'Parse failed');
+    renderPreview(data);
+    $('previewCard').classList.remove('hidden');
+    $('previewCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (e) {
+    showAlert('uploadAlert', 'danger', escapeHtml(e.message));
+  } finally {
+    $('previewBtn').disabled = false;
+    $('previewBtn').textContent = '🔍 Preview Data';
+  }
+}
+
+function renderPreview(data) {
+  const s = data.stats;
+  $('previewSub').textContent = `Filename: ${data.filename}`;
+  $('previewStats').innerHTML = `
+    <div class="stat"><div class="stat-label">Total Items</div><div class="stat-value accent">${s.total_items}</div></div>
+    <div class="stat"><div class="stat-label">Header Fields</div><div class="stat-value info">${Object.keys(data.general).length}</div></div>
+    <div class="stat"><div class="stat-label">Missing HS Codes</div><div class="stat-value ${s.missing_hs_codes > 0 ? '' : 'success'}">${s.missing_hs_codes}</div></div>
+    <div class="stat"><div class="stat-label">Will Auto-Lookup</div><div class="stat-value">${s.will_auto_lookup > 0 ? 'Yes' : 'No'}</div></div>
+  `;
+
+  // General info
+  const g = data.general;
+  if (Object.keys(g).length === 0) {
+    $('generalContent').innerHTML = '<div class="empty"><div class="empty-icon">📋</div>No header data found</div>';
+  } else {
+    const html = Object.entries(g).map(([k, v]) => `
+      <div class="kv"><div class="kv-label">${escapeHtml(k)}</div><div class="kv-value">${escapeHtml(String(v))}</div></div>
+    `).join('');
+    $('generalContent').innerHTML = `<div class="kv-grid">${html}</div>`;
+  }
+
+  // Items
+  const items = data.items;
+  if (items.length === 0) {
+    $('itemsContent').innerHTML = '<div class="empty"><div class="empty-icon">📦</div>No items found</div>';
+  } else {
+    let rows = items.map((it, i) => {
+      const hs = String(it.hs_code || '');
+      const hsCell = hs && hs !== '0'
+        ? `<span class="code-tag">${escapeHtml(hs)}</span>`
+        : `<span class="tag tag-warning">Missing</span>`;
+      return `<tr>
+        <td>${i + 1}</td>
+        <td>${hsCell}</td>
+        <td>${escapeHtml(String(it.description || it.commercial_description || ''))}</td>
+        <td>${escapeHtml(String(it.country_origin || it.country_of_origin || ''))}</td>
+        <td>${escapeHtml(String(it.gross_mass || ''))}</td>
+        <td>${escapeHtml(String(it.item_price || ''))}</td>
+        <td>${escapeHtml(String(it.no_packages || it.no_of_packages || ''))}</td>
+      </tr>`;
+    }).join('');
+    $('itemsContent').innerHTML = `
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th>#</th><th>HS Code</th><th>Description</th><th>Origin</th><th>Gross Mass</th><th>Item Price</th><th>Packages</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    `;
+  }
+}
+
+function closePreview() {
+  $('previewCard').classList.add('hidden');
+}
+
+// ── Generate SAD ───────────────────────────────────────
+async function generateSAD() {
+  if (!selectedFile) return;
+  $('generateBtn').disabled = true;
+  $('previewBtn').disabled = true;
+  $('generateBtn').innerHTML = '<span class="spinner"></span> Generating…';
+  $('processingCard').classList.remove('hidden');
+  $('resultWrap').classList.add('hidden');
+  $('uploadAlert').innerHTML = '';
+  switchToStep3();
+
+  // Fake progress while waiting (HS lookups take time)
+  let pct = 5;
+  const stages = [
+    [15, 'Reading Excel file…'],
+    [35, 'Parsing declaration header…'],
+    [55, 'Parsing line items…'],
+    [70, 'Looking up HS codes on Maldives Customs…'],
+    [88, 'Building SAD workbook…'],
+    [95, 'Saving output file…'],
+  ];
+  let stageIdx = 0;
+  const timer = setInterval(() => {
+    if (stageIdx < stages.length) {
+      const [target, txt] = stages[stageIdx];
+      pct = Math.min(pct + 2, target);
+      $('progressBar').style.width = pct + '%';
+      $('progressText').textContent = txt;
+      if (pct >= target) stageIdx++;
+    }
+  }, 400);
+
+  try {
+    const fd = new FormData();
+    fd.append('file', selectedFile);
+    const r = await fetch('/generate?preferential=' + encodeURIComponent($('prefSelect').value), { method: 'POST', body: fd });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || 'Generation failed');
+
+    clearInterval(timer);
+    $('progressBar').style.width = '100%';
+    $('progressText').textContent = 'Done!';
+    setTimeout(() => $('processingCard').classList.add('hidden'), 500);
+
+    renderResult(data);
+    loadHistory();
+  } catch (e) {
+    clearInterval(timer);
+    $('processingCard').classList.add('hidden');
+    showAlert('uploadAlert', 'danger', escapeHtml(e.message));
+  } finally {
+    $('generateBtn').disabled = false;
+    $('previewBtn').disabled = false;
+    $('generateBtn').textContent = '⚡ Generate SAD File';
+  }
+}
+
+function renderResult(d) {
+  $('downloadLink').href = d.download_url;
+  $('resultSub').textContent = `${d.item_count} item(s) · ${d.hs_auto_filled} HS code(s) auto-filled`;
+
+  // Duty summary (if available)
+  const ds = d.duty_summary || {};
+  const cur = ds.currency || '';
+  const prefLabel = { general: 'General', safta: 'SAFTA', cmfta: 'CMFTA' }[ds.preferential] || 'General';
+  const warn = (ds.warnings || []);
+  $('resultWarnings').innerHTML = warn.length
+    ? `<div class="alert alert-warning"><span class="alert-icon">⚠</span><span>${warn.slice(0, 8).map(escapeHtml).join('<br>')}${warn.length > 8 ? `<br>…and ${warn.length - 8} more` : ''}</span></div>`
+    : '';
+  const dutyCells = (ds.total_item_value !== undefined) ? `
+    <div class="info-cell"><div class="info-label">Total Invoice Value</div><div class="info-value">${money(ds.total_item_value, cur)}</div></div>
+    <div class="info-cell" style="background: var(--primary-soft);"><div class="info-label" style="color: var(--primary);">Total Customs Duty (${prefLabel})</div><div class="info-value" style="color: var(--primary);">${money(ds.total_duty || 0, cur)}</div></div>
+    <div class="info-cell" style="background: var(--success-soft);"><div class="info-label" style="color: var(--success);">Grand Total (w/ Duty)</div><div class="info-value" style="color: var(--success);">${money(ds.total_with_duty || 0, cur)}</div></div>
+    <div class="info-cell"><div class="info-label">Items w/ Duty Rate</div><div class="info-value">${ds.items_with_duty || 0} / ${ds.items_missing_duty || 0} missing</div></div>
+  ` : '';
+
+  $('resultInfo').innerHTML = `
+    <div class="info-cell"><div class="info-label">BL Number</div><div class="info-value">${escapeHtml(d.bl_number)}</div></div>
+    <div class="info-cell"><div class="info-label">Vessel</div><div class="info-value">${escapeHtml(d.vessel)}</div></div>
+    <div class="info-cell"><div class="info-label">Consignee</div><div class="info-value">${escapeHtml(d.consignee)}</div></div>
+    <div class="info-cell"><div class="info-label">Country of Export</div><div class="info-value">${escapeHtml(d.country_of_export)}</div></div>
+    <div class="info-cell"><div class="info-label">Delivery Terms</div><div class="info-value">${escapeHtml(d.delivery_terms)}</div></div>
+    <div class="info-cell"><div class="info-label">Items</div><div class="info-value">${d.item_count}</div></div>
+    <div class="info-cell"><div class="info-label">HS Auto-Filled</div><div class="info-value" style="color: var(--success); font-weight: 700;">${d.hs_auto_filled}</div></div>
+    ${dutyCells}
+  `;
+
+  if (d.items_preview && d.items_preview.length > 0) {
+    let rows = d.items_preview.map((it, i) => {
+      const hs = it.hs_code ? `<span class="code-tag">${escapeHtml(it.hs_code)}</span>` : '<span class="tag tag-warning">—</span>';
+      const lookedUp = it.looked_up ? '<span class="tag tag-info">Auto</span>' : '<span class="tag tag-success">Manual</span>';
+      const dutyRate = (it.duty_rate !== null && it.duty_rate !== undefined)
+        ? `<span style="color: var(--primary); font-weight: 700;">${Number(it.duty_rate).toFixed(2)}%</span>`
+        : '<span style="color: var(--text-soft);">—</span>';
+      const dutyAmt = (it.duty_amount && it.duty_amount > 0)
+        ? `<span style="color: var(--primary);">${money(it.duty_amount, cur)}</span>`
+        : `<span style="color: var(--text-soft);">${money(0, cur)}</span>`;
+      const total = (it.total_with_duty !== undefined)
+        ? `<span style="color: var(--success); font-weight: 700;">${money(it.total_with_duty, cur)}</span>`
+        : '';
+      const price = (it.item_price !== undefined) ? money(it.item_price, cur) : '';
+      return `<tr>
+        <td>${i + 1}</td>
+        <td>${hs}</td>
+        <td>${lookedUp}</td>
+        <td>${escapeHtml(it.description)}</td>
+        <td style="text-align: right;">${price}</td>
+        <td style="text-align: right;">${dutyRate}</td>
+        <td style="text-align: right;">${dutyAmt}</td>
+        <td style="text-align: right;">${total}</td>
+      </tr>`;
+    }).join('');
+    $('itemsPreviewWrap').innerHTML = `
+      <h4 style="margin: 0 0 8px; font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Items Preview (first ${d.items_preview.length}) · with Customs Duty</h4>
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th>#</th><th>HS Code</th><th>Source</th><th>Description</th>
+          <th style="text-align: right;">Item Price</th>
+          <th style="text-align: right; color: var(--primary);">Duty Rate</th>
+          <th style="text-align: right; color: var(--primary);">Duty Amount</th>
+          <th style="text-align: right; color: var(--success);">Total w/ Duty</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    `;
+  } else {
+    $('itemsPreviewWrap').innerHTML = '';
+  }
+
+  $('resultWrap').classList.remove('hidden');
+  $('resultWrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function resetAll() {
+  selectedFile = null;
+  $('fileInput').value = '';
+  $('filePill').classList.remove('shown');
+  $('previewBtn').disabled = true;
+  $('generateBtn').disabled = true;
+  $('uploadAlert').innerHTML = '';
+  closePreview();
+  $('resultWrap').classList.add('hidden');
+  $('processingCard').classList.add('hidden');
+  $('step1').classList.remove('done');
+  $('step2').classList.remove('done', 'active');
+  $('step3').classList.remove('done', 'active');
+  $('step1').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── HS Lookup ──────────────────────────────────────────
+async function hsLookup() {
+  const q = $('hsInput').value.trim();
+  if (!q) { $('hsResults').innerHTML = ''; return; }
+  $('hsBtn').disabled = true;
+  $('hsBtn').innerHTML = '<span class="spinner"></span> Searching…';
+  $('hsResults').innerHTML = '<div class="empty"><span class="spinner"></span> Querying Maldives Customs…</div>';
+  try {
+    const r = await fetch('/api/hs-lookup?description=' + encodeURIComponent(q));
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || 'Lookup failed');
+    renderHsResults(data);
+  } catch (e) {
+    $('hsResults').innerHTML = `<div class="alert alert-danger"><span class="alert-icon">✕</span>${escapeHtml(e.message)}</div>`;
+  } finally {
+    $('hsBtn').disabled = false;
+    $('hsBtn').textContent = '🔍 Search';
+  }
+}
+
+function renderHsResults(data) {
+  if (!data.results || data.results.length === 0) {
+    $('hsResults').innerHTML = `<div class="empty"><div class="empty-icon">🔍</div>No matches for "${escapeHtml(data.query)}". Try a broader term (e.g. "rice" instead of "basmati rice 5kg").</div>`;
+    return;
+  }
+  let rows = data.results.map((r, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td><span class="code-tag">${escapeHtml(r.hs_code)}</span></td>
+      <td>${escapeHtml(r.description)}</td>
+      <td class="rate-cell">${fmtRate(r.duty_rate)}</td>
+      <td class="rate-cell">${fmtRate(r.safta_rate)}</td>
+      <td class="rate-cell">${fmtRate(r.cmfta_rate)}</td>
+      <td><button class="btn btn-ghost" onclick="copyText('${escapeHtml(r.hs_code)}')" style="padding: 4px 10px; font-size: 11px;">📋 Copy</button></td>
+    </tr>
+  `).join('');
+  $('hsResults').innerHTML = `
+    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">${data.results.length} match(es) for "<strong>${escapeHtml(data.query)}</strong>"</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>HS Code</th><th>Description</th><th class="rate-cell">Duty</th><th class="rate-cell">SAFTA</th><th class="rate-cell">CMFTA</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+  `;
+}
+
+function fmtRate(v) {
+  return (v === null || v === undefined) ? '<span style="color: var(--text-soft);">—</span>' : `${Number(v)}%`;
+}
+
+function copyText(t) {
+  navigator.clipboard.writeText(t).then(() => {
+    showAlert('uploadAlert', 'info', `Copied "${t}" to clipboard`);
+  });
+}
+
+// ── History ────────────────────────────────────────────
+async function loadHistory() {
+  try {
+    const r = await fetch('/api/history');
+    const data = await r.json();
+    if (!data.files || data.files.length === 0) {
+      $('historyList').innerHTML = '<div class="empty"><div class="empty-icon">🗂</div>No files yet</div>';
+      return;
+    }
+    $('historyList').innerHTML = data.files.map(f => `
+      <a class="history-item" href="${f.url}" download>
+        <div class="history-name">${escapeHtml(f.name)}</div>
+        <div class="history-meta">
+          <span>📅 ${f.modified}</span>
+          <span>·</span>
+          <span>💾 ${f.size_kb} KB</span>
+        </div>
+      </a>
+    `).join('');
+  } catch (e) {
+    $('historyList').innerHTML = `<div class="empty">Failed to load history</div>`;
+  }
+}
+
+// ── Utility ────────────────────────────────────────────
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// ── Mode switcher (Upload | Manual Entry) ─────────────
+function switchMode(mode) {
+  const isManual = mode === 'manual';
+  $('modeUpload').classList.toggle('active', !isManual);
+  $('modeManual').classList.toggle('active', isManual);
+  $('uploadCard').classList.toggle('hidden', isManual);
+  $('manualCard').classList.toggle('hidden', !isManual);
+  if (isManual && $('itemsBody').children.length === 0) {
+    addFormItem();
+  }
+}
+
+// ── Manual Entry: Items table ──────────────────────────
+// Editable columns (HS code, description, origin, mass, price, packages, brand, model)
+const ITEM_FIELDS = [
+  { key: 'hs_code',       type: 'text',   placeholder: 'auto-lookup', maxlength: 12 },
+  { key: 'description',   type: 'text',   placeholder: 'Item description' },
+  { key: 'country_origin',type: 'text',   placeholder: 'CN', maxlength: 3 },
+  { key: 'gross_mass',    type: 'number', placeholder: '0.0', step: '0.001' },
+  { key: 'item_price',    type: 'number', placeholder: '0.00', step: '0.01' },
+  { key: 'no_packages',   type: 'number', placeholder: '0', step: '1' },
+  { key: 'brand',         type: 'text',   placeholder: '—' },
+  { key: 'model',         type: 'text',   placeholder: '—' },
+];
+
+// Read-only computed columns (duty rate, duty amount, total w/ duty)
+const DUTY_FIELDS = ['duty_rate', 'duty_amount', 'total_with_duty'];
+
+function addFormItem(count = 1) {
+  const body = $('itemsBody');
+  for (let n = 0; n < count; n++) {
+    const tr = document.createElement('tr');
+    const idx = body.children.length + 1;
+    tr.innerHTML = `<td class="col-idx">${idx}</td>` +
+      ITEM_FIELDS.map(f => {
+        const extra = f.maxlength ? ` maxlength="${f.maxlength}" style="text-transform: ${f.key === 'country_origin' || f.key === 'hs_code' ? 'uppercase' : 'none'};"` : '';
+        const step = f.step ? ` step="${f.step}"` : '';
+        return `<td><input type="${f.type}" data-item="${f.key}" placeholder="${f.placeholder}"${extra}${step}></td>`;
+      }).join('') +
+      // Insert duty_rate, duty_amount, total_with_duty in the right position.
+      // The HTML table header order is: #, HS, Desc, Origin, Mass, Price, Packages, DutyRate, DutyAmt, Total, Brand, Model, [del]
+      // ITEM_FIELDS gives us: HS, Desc, Origin, Mass, Price, Packages, Brand, Model
+      // So we need to inject duty cells BEFORE brand.
+      // We'll handle this below by re-ordering.
+      '';
+    // The above left out the duty cells. We need to build the row correctly.
+    // Let me rebuild with the proper cell order.
+    const cells = [`<td class="col-idx">${idx}</td>`];
+    // HS code
+    cells.push(`<td><input type="text" data-item="hs_code" placeholder="auto-lookup" maxlength="12" style="text-transform: uppercase;"></td>`);
+    // Description
+    cells.push(`<td><input type="text" data-item="description" placeholder="Item description"></td>`);
+    // Origin
+    cells.push(`<td><input type="text" data-item="country_origin" placeholder="CN" maxlength="3" style="text-transform: uppercase;"></td>`);
+    // Gross mass
+    cells.push(`<td><input type="number" data-item="gross_mass" placeholder="0.0" step="0.001"></td>`);
+    // Item price
+    cells.push(`<td><input type="number" data-item="item_price" placeholder="0.00" step="0.01"></td>`);
+    // No packages
+    cells.push(`<td><input type="number" data-item="no_packages" placeholder="0" step="1"></td>`);
+    // Duty rate (computed, read-only)
+    cells.push(`<td><input type="text" data-item="duty_rate" readonly placeholder="—" style="background: var(--bg-soft); color: var(--primary); font-weight: 600; text-align: right;"></td>`);
+    // Duty amount (computed, read-only)
+    cells.push(`<td><input type="text" data-item="duty_amount" readonly placeholder="—" style="background: var(--bg-soft); color: var(--primary); font-weight: 600; text-align: right;"></td>`);
+    // Total with duty (computed, read-only)
+    cells.push(`<td><input type="text" data-item="total_with_duty" readonly placeholder="—" style="background: var(--bg-soft); color: var(--success); font-weight: 700; text-align: right;"></td>`);
+    // Brand
+    cells.push(`<td><input type="text" data-item="brand" placeholder="—"></td>`);
+    // Model
+    cells.push(`<td><input type="text" data-item="model" placeholder="—"></td>`);
+    // Delete button
+    cells.push(`<td class="col-act"><button class="item-del" onclick="delFormItem(this)" title="Remove">✕</button></td>`);
+    tr.innerHTML = cells.join('');
+    body.appendChild(tr);
+
+    // Wire up HS code blur → auto duty lookup
+    const hsInput = tr.querySelector('[data-item="hs_code"]');
+    hsInput.addEventListener('blur', () => autoLookupDuty(tr));
+    hsInput.addEventListener('change', () => autoLookupDuty(tr));
+  }
+  updateItemsSummary();
+}
+
+function delFormItem(btn) {
+  const body = $('itemsBody');
+  if (body.children.length <= 1) return;
+  btn.closest('tr').remove();
+  // Reindex
+  Array.from(body.children).forEach((tr, i) => {
+    tr.querySelector('.col-idx').textContent = i + 1;
+  });
+  updateItemsSummary();
+}
+
+async function autoLookupDuty(tr) {
+  const hsInput = tr.querySelector('[data-item="hs_code"]');
+  const dutyRateInput = tr.querySelector('[data-item="duty_rate"]');
+  let hs = (hsInput.value || '').trim().replace(/[^0-9]/g, '');
+  if (!hs || hs.length < 8) {
+    dutyRateInput.value = '';
+    dutyRateInput.placeholder = '—';
+    updateItemsSummary();
+    return;
+  }
+  dutyRateInput.value = '⏳';
+  dutyRateInput.style.color = 'var(--text-muted)';
+  try {
+    const r = await fetch('/api/hs-tariff/' + encodeURIComponent(hs));
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || 'Not found');
+    if (data.duty_rate !== null && data.duty_rate !== undefined) {
+      dutyRateInput.value = data.duty_rate + '%';
+      dutyRateInput.style.color = 'var(--primary)';
+      // Also store SAFTA / CMFTA / unit for later use
+      tr.dataset.saftaRate = data.safta_rate ?? '';
+      tr.dataset.cmftaRate = data.cmfta_rate ?? '';
+      tr.dataset.hsUnit = data.hs_unit || '';
+      tr.dataset.tariffDesc = data.description || '';
+    } else {
+      dutyRateInput.value = '0%';
+      dutyRateInput.style.color = 'var(--text-muted)';
+    }
+  } catch (e) {
+    dutyRateInput.value = '??';
+    dutyRateInput.style.color = 'var(--danger)';
+  }
+  updateItemsSummary();
+}
+
+async function lookupAllDuties() {
+  const rows = document.querySelectorAll('#itemsBody tr');
+  if (rows.length === 0) return;
+  $('lookupAllBtn').disabled = true;
+  $('lookupAllBtn').innerHTML = '<span class="spinner"></span> Looking up…';
+  // Run sequentially (or in parallel with Promise.all)
+  const tasks = [];
+  rows.forEach(tr => {
+    const hs = (tr.querySelector('[data-item="hs_code"]').value || '').trim();
+    if (hs.length >= 8) tasks.push(autoLookupDuty(tr));
+  });
+  await Promise.all(tasks);
+  $('lookupAllBtn').disabled = false;
+  $('lookupAllBtn').textContent = '🔍 Lookup All Duties';
+  showAlert('manualAlert', 'success', `Looked up duty rates for ${tasks.length} item(s).`);
+}
+
+function updateItemsSummary() {
+  const items = collectItems();
+  const curEl = document.querySelector('#manualCard [data-f="invoice_currency"]');
+  const cur = (curEl && curEl.value.trim()) || '';
+  let totalValue = 0, totalPkg = 0, totalDuty = 0, totalGrand = 0;
+  let dutyRatesFound = 0;
+  items.forEach(it => {
+    const price = parseFloat(it.item_price) || 0;
+    totalValue += price;
+    totalPkg += parseInt(it.no_packages) || 0;
+    // Parse duty rate from "X%" or numeric
+    let rate = null;
+    if (it.duty_rate) {
+      const m = String(it.duty_rate).match(/-?\d+(\.\d+)?/);
+      if (m) { rate = parseFloat(m[0]); dutyRatesFound++; }
+    }
+    const dutyAmt = rate !== null ? (price * rate / 100) : 0;
+    totalDuty += dutyAmt;
+    totalGrand += price + dutyAmt;
+  });
+
+  $('itemsSummary').innerHTML =
+    `<span><strong>${items.length}</strong> item${items.length !== 1 ? 's' : ''}</span> · ` +
+    `<span>Total invoice value: <strong>${money(totalValue, cur)}</strong></span> · ` +
+    `<span>Total packages: <strong>${totalPkg}</strong></span> · ` +
+    `<span style="color: var(--primary);">Total customs duty: <strong>${money(totalDuty, cur)}</strong></span> · ` +
+    `<span style="color: var(--success);">Grand total: <strong>${money(totalGrand, cur)}</strong></span>`;
+
+  // Update Box 5 (items count) + totals row
+  $('formItemsCount').value = items.length;
+  $('totalItemPrice').textContent = money(totalValue, cur);
+  $('totalPackages').textContent = totalPkg;
+  $('totalDutyRate').textContent = dutyRatesFound > 0 ? `${dutyRatesFound} rate(s)` : '—';
+  $('totalDutyAmount').textContent = money(totalDuty, cur);
+  $('totalGrandTotal').textContent = money(totalGrand, cur);
+}
+
+// Re-update summary when user types in items table (but skip duty_rate field)
+$('itemsBody').addEventListener('input', (e) => {
+  if (e.target.getAttribute('data-item') === 'duty_rate') return;
+  updateItemsSummary();
+});
+
+function collectGeneral() {
+  const g = {};
+  document.querySelectorAll('#manualCard [data-f]').forEach(el => {
+    const k = el.getAttribute('data-f');
+    let v = el.value.trim();
+    if (v === '') return;
+    if (el.type === 'number') v = parseFloat(v);
+    g[k] = v;
+  });
+  return g;
+}
+
+function collectItems() {
+  const items = [];
+  document.querySelectorAll('#itemsBody tr').forEach(tr => {
+    const it = {};
+    let hasAny = false;
+    tr.querySelectorAll('[data-item]').forEach(el => {
+      const k = el.getAttribute('data-item');
+      let v = el.value.trim();
+      if (v === '') return;
+      if (k === 'hs_code' || k === 'description' || k === 'country_origin' || k === 'brand' || k === 'model') {
+        // string
+      } else if (k === 'duty_rate' || k === 'duty_amount' || k === 'total_with_duty') {
+        // keep as string for display, parse below if numeric
+      } else {
+        // numeric
+        v = parseFloat(v);
+      }
+      hasAny = true;
+      it[k] = v;
+    });
+    if (hasAny) items.push(it);
+  });
+  return items;
+}
+
+function resetForm() {
+  document.querySelectorAll('#manualCard [data-f]').forEach(el => { el.value = ''; });
+  $('itemsBody').innerHTML = '';
+  addFormItem();
+  showAlert('manualAlert', 'info', 'Form cleared.');
+}
+
+function loadSampleForm() {
+  const samples = {
+    bl_number: 'BL' + Math.floor(Math.random() * 900000 + 100000),
+    manifest_no: '2026/' + Math.floor(Math.random() * 900 + 100),
+    vessel_name: 'MV OCEAN STAR / IMO 9876543',
+    active_means: 'MV OCEAN STAR',
+    exporter: 'GLOBAL FOODS CO LTD, SHANGHAI',
+    consignee_code: 'C23437',
+    consignee_name: 'RC MALDIVES PRIVATE LIMITED, G.MANAAM BUILDING/K.MALE\'',
+    declarant_code: 'C23437',
+    country_of_export: 'CN',
+    trading_country: 'CN',
+    country_of_destination: 'MV',
+    customs_office: '00MP',
+    office_entry_exit: '00MP',
+    decl_type: 'IM',
+    decl_subtype: '4',
+    procedure: '4000',
+    procedure_add: '000',
+    preference: '100',
+    mode_transport: '1',
+    inland_mode: '2',
+    carrier_nationality: 'MV',
+    place_discharge: 'MLE',
+    location_goods: 'HBW',
+    total_packages: 6,
+    invoice_amount: 45000,
+    invoice_currency: 'USD',
+    exchange_rate: 15.42,
+    nature_transaction: '11',
+    internal_freight: 0,
+    external_freight: 4000,
+    freight_currency: 'USD',
+    insurance: 300,
+    insurance_currency: 'USD',
+    other_costs: 130.75,
+    other_costs_currency: 'USD',
+    delivery_terms: 'CIF',
+    financial_banking: 'CASH',
+  };
+  Object.entries(samples).forEach(([k, v]) => {
+    const el = document.querySelector(`#manualCard [data-f="${k}"]`);
+    if (el) el.value = v;
+  });
+  // Sample items — using realistic HS codes that will trigger tariff lookups
+  $('itemsBody').innerHTML = '';
+  const sampleItems = [
+    // Rice — HS 1006300099, duty 0% (food staple)
+    { hs_code: '1006300099', description: 'Basmati Rice 5kg pack', country_origin: 'IN', gross_mass: 1200, item_price: 18000, no_packages: 240, brand: 'Golden', model: '' },
+    // Footwear — typically has high duty (looking up will show the real %)
+    { hs_code: '6403990099', description: 'Leather Sandals (men)', country_origin: 'CN', gross_mass: 80, item_price: 8500, no_packages: 50, brand: 'WalkMax', model: 'WX-200' },
+    // T-shirt — HS 6109100010 (cotton T-shirts)
+    { hs_code: '6109100010', description: 'Cotton T-Shirt (printed)', country_origin: 'BD', gross_mass: 150, item_price: 6000, no_packages: 100, brand: 'SeaFresh', model: '' },
+    // Canned tuna — HS 1604140000
+    { hs_code: '1604140000', description: 'Canned Tuna in Oil 185g', country_origin: 'TH', gross_mass: 240, item_price: 7000, no_packages: 120, brand: 'SeaFresh', model: '' },
+    // Plastic kitchenware — HS 3924100000
+    { hs_code: '3924100000', description: 'Plastic Kitchen Container Set', country_origin: 'CN', gross_mass: 45, item_price: 5500, no_packages: 80, brand: 'HomePro', model: 'KP-555' },
+  ];
+  sampleItems.forEach(it => {
+    addFormItem();
+    const last = $('itemsBody').lastElementChild;
+    Object.entries(it).forEach(([k, v]) => {
+      const el = last.querySelector(`[data-item="${k}"]`);
+      if (el) el.value = v;
+    });
+  });
+  updateItemsSummary();
+  // Auto-lookup all duties in parallel after sample load
+  setTimeout(() => lookupAllDuties(), 200);
+  showAlert('manualAlert', 'success', 'Sample data loaded. Duty rates are being looked up automatically — wait for the "⏳" to clear.');
+}
+
+function validateManualForm() {
+  const g = collectGeneral();
+  const items = collectItems();
+  const errors = [];
+  if (!g.bl_number) errors.push('Box 7: BL Number is required');
+  if (!g.exporter) errors.push('Box 2: Exporter is required');
+  if (!g.country_of_export) errors.push('Box 15: Country of Export is required');
+  if (items.length === 0) errors.push('Add at least one line item');
+  items.forEach((it, i) => {
+    if (!it.description) errors.push(`Item ${i+1}: Box 31 Description is required`);
+  });
+  return errors;
+}
+
+async function generateManualSAD() {
+  const errors = validateManualForm();
+  if (errors.length > 0) {
+    showAlert('manualAlert', 'danger', 'Please fix these issues:<br>• ' + errors.join('<br>• '));
+    return;
+  }
+  const payload = { general: collectGeneral(), items: collectItems(), preferential: $('manualPrefSelect').value };
+  $('manualGenerateBtn').disabled = true;
+  $('manualGenerateBtn').innerHTML = '<span class="spinner"></span> Generating…';
+  $('processingCard').classList.remove('hidden');
+  $('resultWrap').classList.add('hidden');
+  switchToStep3();
+  let pct = 5;
+  const stages = [
+    [20, 'Reading form data…'],
+    [50, `Looking up HS codes for ${payload.items.length} item(s)…`],
+    [80, 'Building SAD workbook…'],
+    [95, 'Saving output file…'],
+  ];
+  let stageIdx = 0;
+  const timer = setInterval(() => {
+    if (stageIdx < stages.length) {
+      const [target, txt] = stages[stageIdx];
+      pct = Math.min(pct + 2, target);
+      $('progressBar').style.width = pct + '%';
+      $('progressText').textContent = txt;
+      if (pct >= target) stageIdx++;
+    }
+  }, 400);
+  try {
+    const r = await fetch('/api/generate-manual', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || 'Generation failed');
+    clearInterval(timer);
+    $('progressBar').style.width = '100%';
+    $('progressText').textContent = 'Done!';
+    setTimeout(() => $('processingCard').classList.add('hidden'), 500);
+    renderResult(data);
+    loadHistory();
+    showAlert('manualAlert', 'success', `SAD generated successfully — ${data.item_count} items, ${data.hs_auto_filled} HS code(s) auto-filled.`);
+  } catch (e) {
+    clearInterval(timer);
+    $('processingCard').classList.add('hidden');
+    showAlert('manualAlert', 'danger', escapeHtml(e.message));
+  } finally {
+    $('manualGenerateBtn').disabled = false;
+    $('manualGenerateBtn').textContent = '⚡ Generate SAD from Form';
+  }
+}
+
+// ── Init ───────────────────────────────────────────────
+loadHistory();
+fetch('/api/health').then(r => r.json()).then(h => { if (h.output_dir) $('outputDir').textContent = h.output_dir; }).catch(() => {});
+</script>
+
+</body>
+</html>

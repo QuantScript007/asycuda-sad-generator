@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+.venv_build/
+venv/
+
+# PyInstaller output (download the .exe from GitHub Actions / Releases instead)
+build/
+dist/
+*.exe
+
+# Generated SAD files contain real shipment data — never commit them
+sad_output/
+SAD_*.xls
+SAD_*.xlsx
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
