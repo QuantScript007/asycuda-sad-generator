@@ -13,6 +13,7 @@ from fastapi.responses import FileResponse, HTMLResponse, Response
 from pydantic import BaseModel, Field
 
 from . import __version__, config, service
+from .analytics import build_analytics
 from .duty import PREFERENTIAL_KEYS
 from .excel_io import read_input_excel
 from .hs_lookup import lookup_hs_candidates, lookup_hs_tariff
@@ -46,6 +47,7 @@ class GenerateResponse(BaseModel):
     output_file: str
     items_preview: list[dict] = Field(default_factory=list)
     duty_summary: dict = Field(default_factory=dict)
+    analytics: dict = Field(default_factory=dict)
 
 
 class ManualEntryRequest(BaseModel):
@@ -137,6 +139,7 @@ async def api_preview(file: UploadFile = File(...)):
             "has_general_data": bool(data["general"]),
         },
         "warnings": service.validate(data),
+        "analytics": build_analytics(data["general"], items),
     }
 
 

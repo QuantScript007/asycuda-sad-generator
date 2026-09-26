@@ -665,6 +665,141 @@
     color: var(--text-muted);
   }
   .form-summary strong { color: var(--text); }
+
+  /* ═══════════ v3.1 colour theme & dashboard ═══════════ */
+  :root {
+    --c-orange: #F97316; --c-pink: #EC4899; --c-violet: #8B5CF6; --c-blue: #3B82F6;
+    --c-teal: #14B8A6; --c-green: #22C55E; --c-amber: #F59E0B; --c-red: #EF4444;
+    --grad-hero: linear-gradient(120deg, #F97316 0%, #EC4899 45%, #8B5CF6 100%);
+    --grad-warm: linear-gradient(135deg, #F97316, #EC4899);
+    --grad-cool: linear-gradient(135deg, #3B82F6, #8B5CF6);
+    --grad-fresh: linear-gradient(135deg, #14B8A6, #22C55E);
+    --grad-sun: linear-gradient(135deg, #F59E0B, #F97316);
+    --bg: #F6F7FB;
+    --track: #EEF1F6;
+  }
+  [data-theme="dark"] { --bg: #0A0F1E; --track: #1E293B; }
+
+  body { background:
+    radial-gradient(1200px 500px at 100% -10%, rgba(236,72,153,.08), transparent 60%),
+    radial-gradient(900px 400px at -10% 10%, rgba(59,130,246,.08), transparent 60%), var(--bg); }
+  .topbar { border-bottom: none; box-shadow: 0 1px 0 var(--border); }
+  .topbar::after { content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; background: var(--grad-hero); }
+  .brand-logo { background: var(--grad-hero); box-shadow: 0 6px 16px rgba(236,72,153,.35); }
+  .btn-primary { background: var(--grad-warm); box-shadow: 0 4px 14px rgba(236,72,153,.25); }
+  .btn-primary:hover:not(:disabled) { background: var(--grad-warm); filter: brightness(1.07); }
+
+  /* Hero banner */
+  .hero { background: var(--grad-hero); color: #fff; border-radius: 20px; padding: 28px 30px; position: relative; overflow: hidden;
+          box-shadow: 0 16px 40px rgba(139,92,246,.25); }
+  .hero::before, .hero::after { content: ''; position: absolute; border-radius: 50%; background: rgba(255,255,255,.12); }
+  .hero::before { width: 260px; height: 260px; right: -60px; top: -90px; }
+  .hero::after { width: 160px; height: 160px; right: 140px; bottom: -90px; }
+  .hero h1 { color: #fff; position: relative; }
+  .hero p { color: rgba(255,255,255,.9); position: relative; }
+  .hero-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; position: relative; }
+  .hero-stat { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.28); backdrop-filter: blur(6px);
+               border-radius: 12px; padding: 8px 14px; min-width: 120px; }
+  .hero-stat b { display: block; font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+  .hero-stat span { font-size: 11px; opacity: .9; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+
+  /* Coloured steps */
+  .step { overflow: hidden; }
+  .step::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--step-c, var(--c-orange)); }
+  #step1 { --step-c: var(--c-orange); } #step2 { --step-c: var(--c-pink); } #step3 { --step-c: var(--c-violet); }
+  .step.active { border-color: var(--step-c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--step-c) 18%, transparent); }
+  .step.active .step-num { background: var(--step-c); }
+
+  /* Cards with an accent strip */
+  .card { position: relative; overflow: hidden; }
+  .card.accent::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--card-grad, var(--grad-hero)); }
+  .card.a-warm { --card-grad: var(--grad-warm); } .card.a-cool { --card-grad: var(--grad-cool); }
+  .card.a-fresh { --card-grad: var(--grad-fresh); } .card.a-sun { --card-grad: var(--grad-sun); }
+  .dropzone { background: linear-gradient(135deg, color-mix(in srgb, var(--c-orange) 6%, var(--bg-soft)), color-mix(in srgb, var(--c-violet) 6%, var(--bg-soft))); }
+  .dropzone-icon { background: var(--grad-warm); color: #fff; box-shadow: 0 6px 16px rgba(249,115,22,.3); }
+  .tab.active { color: var(--c-pink); border-bottom-color: var(--c-pink); }
+
+  /* Colourful stat tiles */
+  .stat { border: none; color: #fff; position: relative; overflow: hidden; }
+  .stat::after { content: ''; position: absolute; width: 90px; height: 90px; border-radius: 50%; right: -30px; top: -30px; background: rgba(255,255,255,.15); }
+  .stat:nth-child(6n+1) { background: var(--grad-warm); } .stat:nth-child(6n+2) { background: var(--grad-cool); }
+  .stat:nth-child(6n+3) { background: var(--grad-fresh); } .stat:nth-child(6n+4) { background: var(--grad-sun); }
+  .stat:nth-child(6n+5) { background: linear-gradient(135deg, #8B5CF6, #EC4899); } .stat:nth-child(6n+6) { background: linear-gradient(135deg, #0EA5E9, #14B8A6); }
+  .stat .stat-label { color: rgba(255,255,255,.88); }
+  .stat .stat-value, .stat .stat-value.accent, .stat .stat-value.success, .stat .stat-value.info { color: #fff; }
+  .stat-foot { font-size: 11px; color: rgba(255,255,255,.85); margin-top: 2px; }
+
+  /* Result card */
+  .result-card { background: var(--bg-elev); border: 1px solid var(--border); box-shadow: var(--shadow-lg); position: relative; overflow: hidden; }
+  .result-card::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 5px; background: var(--grad-fresh); }
+  .result-icon { background: var(--grad-fresh); box-shadow: 0 6px 16px rgba(34,197,94,.35); }
+  .info-cell { border-left: 3px solid var(--ic, var(--c-blue)); }
+  .info-cell:nth-child(5n+1) { --ic: var(--c-orange); } .info-cell:nth-child(5n+2) { --ic: var(--c-pink); }
+  .info-cell:nth-child(5n+3) { --ic: var(--c-violet); } .info-cell:nth-child(5n+4) { --ic: var(--c-blue); }
+  .info-cell:nth-child(5n+5) { --ic: var(--c-teal); }
+
+  /* Dashboard */
+  .dash { display: grid; gap: 14px; margin: 16px 0 4px; }
+  .dash-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .dash-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 860px) { .dash-row { grid-template-columns: 1fr; } }
+  .panel { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 14px; padding: 16px; min-width: 0; }
+  .panel h4 { margin: 0 0 12px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+  .panel h4 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--grad-hero); }
+  .stack { display: flex; height: 26px; border-radius: 8px; overflow: hidden; background: var(--track); }
+  .stack > div { height: 100%; min-width: 2px; transition: filter .15s; }
+  .stack > div:hover { filter: brightness(1.12); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 12px; color: var(--text-muted); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .legend b { color: var(--text); font-weight: 700; margin-left: 4px; }
+  .cost-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-strong); font-size: 13px; }
+  .cost-total b { font-size: 18px; background: var(--grad-hero); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .bars { display: grid; gap: 9px; }
+  .bar-row { display: grid; grid-template-columns: minmax(90px, 150px) 1fr auto; align-items: center; gap: 10px; font-size: 12px; }
+  .bar-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+  .bar-track { height: 12px; background: var(--track); border-radius: 999px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 999px; }
+  .bar-val { color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .donut-wrap { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .donut-wrap svg { flex: 0 0 auto; }
+  .donut-center { font-size: 11px; fill: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+  .donut-num { font-size: 17px; font-weight: 800; fill: var(--text); }
+  .donut-legend { display: grid; gap: 6px; font-size: 12px; flex: 1; min-width: 160px; }
+  .donut-legend div { display: grid; grid-template-columns: 12px 1fr auto; gap: 8px; align-items: center; }
+  .donut-legend i { width: 12px; height: 12px; border-radius: 4px; }
+  .hist { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding-top: 8px; }
+  .hist-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .hist-bar { width: 100%; border-radius: 8px 8px 3px 3px; min-height: 3px; }
+  .hist-n { font-size: 12px; font-weight: 700; }
+  .hist-l { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+  .top-list { display: grid; gap: 8px; }
+  .top-item { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center; font-size: 12px; }
+  .rank { width: 26px; height: 26px; border-radius: 8px; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; }
+  .top-item .t-desc { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .top-item .t-sub { color: var(--text-muted); font-size: 11px; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+  .badge.ok { background: var(--success-soft); color: var(--success); }
+  .badge.bad { background: var(--danger-soft); color: var(--danger); }
+  .badge.na { background: var(--bg-soft); color: var(--text-muted); }
+  .rate-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-weight: 700; font-size: 11px; color: #fff; }
+  .chip { display: inline-block; padding: 1px 7px; border-radius: 6px; font-size: 10px; font-weight: 700; background: var(--bg-soft); color: var(--text-muted); margin-left: 6px; }
+  .flag { font-size: 15px; margin-right: 4px; vertical-align: -2px; }
+  .kpi { border-radius: 14px; padding: 14px; color: #fff; position: relative; overflow: hidden; }
+  .kpi::after { content: ''; position: absolute; width: 80px; height: 80px; right: -24px; bottom: -34px; border-radius: 50%; background: rgba(255,255,255,.16); }
+  .kpi .k-ico { font-size: 18px; }
+  .kpi .k-label { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; opacity: .9; margin-top: 4px; }
+  .kpi .k-val { font-size: 20px; font-weight: 800; letter-spacing: -.02em; line-height: 1.2; }
+  .kpi .k-sub { font-size: 11px; opacity: .9; }
+  tr.row-zebra:nth-child(even) td { background: color-mix(in srgb, var(--bg-soft) 60%, transparent); }
+
+  /* History */
+  .history-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  .history-stats div { border-radius: 10px; padding: 8px; text-align: center; color: #fff; }
+  .history-stats b { display: block; font-size: 16px; }
+  .history-stats span { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; opacity: .9; }
+  .history-item { display: flex; gap: 10px; align-items: center; }
+  .history-item .h-badge { flex: 0 0 34px; height: 34px; border-radius: 9px; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; }
+  .history-item .h-body { min-width: 0; flex: 1; }
 </style>
 </head>
 <body>
@@ -688,6 +823,12 @@
   <div class="hero">
     <h1>Generate ASYCUDA SAD files in seconds</h1>
     <p>Upload your filled Excel template (or a native ASYCUDA file), and we'll parse it, auto-lookup any missing HS codes against the Maldives Customs tariff database, and produce a ready-to-import SAD workbook — all on your local machine.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><b id="heroFiles">–</b><span>SAD files made</span></div>
+      <div class="hero-stat"><b id="heroToday">–</b><span>Made today</span></div>
+      <div class="hero-stat"><b id="heroLast">–</b><span>Last generated</span></div>
+      <div class="hero-stat"><b>3</b><span>Tariffs · Gen / SAFTA / CMFTA</span></div>
+    </div>
   </div>
 
   <div class="steps">
@@ -712,7 +853,7 @@
     <!-- Main column -->
     <div>
       <!-- Download template card -->
-      <div class="card">
+      <div class="card accent a-sun">
         <div class="card-header">
           <div>
             <h2 class="card-title">Step 1 · Get the input template</h2>
@@ -740,7 +881,7 @@
       </div>
 
       <!-- Upload card -->
-      <div class="card" id="uploadCard">
+      <div class="card accent a-warm" id="uploadCard">
         <div class="card-header">
           <div>
             <h2 class="card-title">Step 2 · Upload your Excel file</h2>
@@ -779,7 +920,7 @@
       </div>
 
       <!-- Manual Entry card (hidden by default) -->
-      <div class="card hidden" id="manualCard">
+      <div class="card accent a-warm hidden" id="manualCard">
         <div class="card-header">
           <div>
             <h2 class="card-title">Manual Entry · SAD Declaration Form</h2>
@@ -1133,7 +1274,7 @@
       </div>
 
       <!-- Preview card (hidden until preview) -->
-      <div class="card hidden" id="previewCard">
+      <div class="card accent a-cool hidden" id="previewCard">
         <div class="card-header">
           <div>
             <h2 class="card-title">File Preview</h2>
@@ -1145,11 +1286,14 @@
         <div class="stats-grid" id="previewStats"></div>
 
         <div class="tabs">
-          <button class="tab active" onclick="switchTab(event, 'tab-general')">Declaration Header</button>
+          <button class="tab active" onclick="switchTab(event, 'tab-insights')">📊 Insights</button>
+          <button class="tab" onclick="switchTab(event, 'tab-general')">Declaration Header</button>
           <button class="tab" onclick="switchTab(event, 'tab-items')">Line Items</button>
         </div>
 
-        <div class="tab-panel active" id="tab-general">
+        <div class="tab-panel active" id="tab-insights"><div id="previewDash"></div></div>
+
+        <div class="tab-panel" id="tab-general">
           <div id="generalContent"><div class="empty"><div class="empty-icon">📋</div>No header data found</div></div>
         </div>
 
@@ -1185,6 +1329,7 @@
 
           <div id="resultWarnings"></div>
         <div class="info-grid" id="resultInfo"></div>
+          <div id="resultDash"></div>
 
           <div class="section-divider"></div>
 
@@ -1198,7 +1343,7 @@
       </div>
 
       <!-- HS Lookup tool -->
-      <div class="card">
+      <div class="card accent a-cool">
         <div class="card-header">
           <div>
             <h2 class="card-title">HS Code Lookup Tool</h2>
@@ -1215,7 +1360,7 @@
 
     <!-- Sidebar -->
     <div>
-      <div class="card">
+      <div class="card accent">
         <div class="card-header">
           <div>
             <h2 class="card-title">Recent Generations</h2>
@@ -1223,6 +1368,7 @@
           </div>
           <button class="icon-btn" onclick="loadHistory()" title="Refresh">↻</button>
         </div>
+        <div class="history-stats" id="historyStats"></div>
         <div id="historyList"><div class="empty"><div class="empty-icon">🗂</div>No files yet</div></div>
       </div>
 
@@ -1334,6 +1480,136 @@ function clearFile(e) {
   closePreview();
 }
 
+// ── Dashboard helpers (v3.1) ───────────────────────────
+const PALETTE = ['#F97316', '#EC4899', '#8B5CF6', '#3B82F6', '#14B8A6', '#22C55E', '#F59E0B', '#EF4444'];
+const BAND_COLORS = { '0%': '#22C55E', '0–10%': '#14B8A6', '10–20%': '#3B82F6', '20–30%': '#8B5CF6', '>30%': '#EC4899', 'Unknown': '#94A3B8' };
+const GRADS = ['var(--grad-warm)', 'var(--grad-cool)', 'var(--grad-fresh)', 'var(--grad-sun)',
+               'linear-gradient(135deg,#8B5CF6,#EC4899)', 'linear-gradient(135deg,#0EA5E9,#14B8A6)'];
+
+function num(n, d = 0) { return Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d }); }
+function flag(cc) {
+  cc = String(cc || '').trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(cc)) return '';
+  return `<span class="flag">${String.fromCodePoint(...[...cc].map(c => 0x1F1E6 + c.charCodeAt(0) - 65))}</span>`;
+}
+function rateColor(r) {
+  if (r === null || r === undefined) return BAND_COLORS.Unknown;
+  if (r === 0) return BAND_COLORS['0%'];
+  if (r <= 10) return BAND_COLORS['0–10%'];
+  if (r <= 20) return BAND_COLORS['10–20%'];
+  if (r <= 30) return BAND_COLORS['20–30%'];
+  return BAND_COLORS['>30%'];
+}
+function ratePill(r) {
+  if (r === null || r === undefined) return '<span style="color: var(--text-soft);">—</span>';
+  return `<span class="rate-pill" style="background:${rateColor(r)}">${Number(r)}%</span>`;
+}
+function kpi(icon, label, value, sub, grad) {
+  return `<div class="kpi" style="background:${grad}"><div class="k-ico">${icon}</div><div class="k-label">${label}</div>
+    <div class="k-val">${value}</div>${sub ? `<div class="k-sub">${sub}</div>` : ''}</div>`;
+}
+function donut(rows, total, centerLabel, centerValue) {
+  const R = 54, C = 2 * Math.PI * R;
+  let off = 0;
+  const segs = rows.filter(r => r.v > 0).map((r, i) => {
+    const len = total > 0 ? (r.v / total) * C : 0;
+    const s = `<circle r="${R}" cx="70" cy="70" fill="none" stroke="${r.c}" stroke-width="20"
+      stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}" transform="rotate(-90 70 70)"><title>${escapeHtml(r.label)}</title></circle>`;
+    off += len; return s;
+  }).join('');
+  return `<svg width="140" height="140" viewBox="0 0 140 140" role="img" aria-label="${escapeHtml(centerLabel)}">
+    <circle r="${R}" cx="70" cy="70" fill="none" stroke="var(--track)" stroke-width="20"></circle>${segs}
+    <text x="70" y="66" text-anchor="middle" class="donut-center">${escapeHtml(centerLabel)}</text>
+    <text x="70" y="86" text-anchor="middle" class="donut-num">${escapeHtml(centerValue)}</text></svg>`;
+}
+function bars(rows, cur, colorOf) {
+  const max = Math.max(1, ...rows.map(r => r.value));
+  return `<div class="bars">${rows.map((r, i) => `
+    <div class="bar-row" title="${escapeHtml(r.label)}: ${r.items} item(s), duty ${money(r.duty, cur)}">
+      <div class="bar-label">${colorOf ? '' : flag(r.key)}${escapeHtml(r.label)}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(100 * r.value / max).toFixed(1)}%; background:${colorOf ? colorOf(i) : PALETTE[i % PALETTE.length]}"></div></div>
+      <div class="bar-val">${money(r.value, cur)} · ${r.share}%</div>
+    </div>`).join('')}</div>`;
+}
+
+function renderDashboard(target, a, cur, opts = {}) {
+  if (!a || !a.totals) { $(target).innerHTML = ''; return; }
+  const t = a.totals, cb = a.cost_breakdown, rec = a.reconciliation;
+  const hasDuty = opts.hasDuty !== false;
+
+  const kpis = [
+    kpi('📦', 'Line items', num(t.items), `${t.chapters} HS chapter(s) · ${t.origins} origin(s)`, GRADS[1]),
+    kpi('💰', 'Goods value', money(t.item_value, cur), t.value_per_kg ? `${money(t.value_per_kg, cur)} / kg` : '', GRADS[0]),
+    hasDuty ? kpi('🏛', 'Customs duty', money(t.duty, cur), `effective rate ${num(t.effective_rate, 2)}%`, GRADS[4]) : '',
+    kpi('🚢', 'CIF value', money(cb.cif, cur), `freight + insurance + other`, GRADS[5]),
+    hasDuty ? kpi('🧾', 'Landed (CIF + duty)', money(cb.landed, cur), '', GRADS[2]) : '',
+    kpi('⚖️', 'Gross mass', `${num(t.gross_mass, 1)} kg`, `${num(t.packages)} package(s)${t.declared_packages ? ` · declared ${num(t.declared_packages)}` : ''}`, GRADS[3]),
+  ].join('');
+
+  const costParts = [
+    ['Goods', cb.goods, PALETTE[0]], ['External freight', cb.external_freight, PALETTE[3]],
+    ['Internal freight', cb.internal_freight, PALETTE[4]], ['Insurance', cb.insurance, PALETTE[2]],
+    ['Other costs', cb.other_costs, PALETTE[6]], ...(hasDuty ? [['Duty', cb.duty, PALETTE[1]]] : []),
+  ].filter(p => p[1] > 0);
+  const costSum = costParts.reduce((s, p) => s + p[1], 0) || 1;
+  const costPanel = `<div class="panel"><h4><span class="dot"></span>Cost build-up</h4>
+    <div class="stack">${costParts.map(p => `<div style="width:${(100 * p[1] / costSum).toFixed(2)}%;background:${p[2]}" title="${p[0]}: ${money(p[1], cur)}"></div>`).join('')}</div>
+    <div class="legend">${costParts.map(p => `<span><i style="background:${p[2]}"></i>${p[0]}<b>${money(p[1], cur)}</b></span>`).join('')}</div>
+    ${cb.deductions > 0 ? `<div class="legend"><span>Deductions <b>−${money(cb.deductions, cur)}</b></span></div>` : ''}
+    <div class="cost-total"><span>${hasDuty ? 'Landed cost (CIF + duty)' : 'CIF value'}</span><b>${money(hasDuty ? cb.landed : cb.cif, cur)}</b></div></div>`;
+
+  const recBadge = rec.matches === null ? '<span class="badge na">No declared invoice total</span>'
+    : rec.matches ? '<span class="badge ok">✓ Items match declared invoice</span>'
+    : `<span class="badge bad">⚠ Items differ from invoice by ${money(rec.difference, cur)}</span>`;
+  const src = a.hs_sources, srcTotal = (src.manual + src.auto + src.missing) || 1;
+  const srcPanel = `<div class="panel"><h4><span class="dot"></span>Checks</h4>
+    <div style="margin-bottom:12px">${recBadge}</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">HS code source</div>
+    <div class="stack" style="height:16px">
+      <div style="width:${100 * src.manual / srcTotal}%;background:#22C55E" title="From file/form"></div>
+      <div style="width:${100 * src.auto / srcTotal}%;background:#3B82F6" title="Auto-looked-up"></div>
+      <div style="width:${100 * src.missing / srcTotal}%;background:#EF4444" title="Missing"></div></div>
+    <div class="legend"><span><i style="background:#22C55E"></i>Provided<b>${src.manual}</b></span>
+      <span><i style="background:#3B82F6"></i>Auto-filled<b>${src.auto}</b></span>
+      <span><i style="background:#EF4444"></i>Missing<b>${src.missing}</b></span></div>
+    ${a.highest_rate_item ? `<div style="margin-top:12px;font-size:12px">Highest rate: ${ratePill(a.highest_rate_item.duty_rate)}
+      <span style="color:var(--text-muted)">#${a.highest_rate_item.index} ${escapeHtml(a.highest_rate_item.description || a.highest_rate_item.hs_code)}</span></div>` : ''}
+    ${t.declared_packages && t.declared_packages !== t.packages ? `<div style="margin-top:10px"><span class="badge bad">⚠ Packages: items ${num(t.packages)} vs declared ${num(t.declared_packages)}</span></div>` : ''}
+  </div>`;
+
+  const ch = a.by_chapter.map((r, i) => ({ ...r, c: PALETTE[i % PALETTE.length], v: hasDuty && t.duty > 0 ? r.duty : r.value }));
+  const chTotal = ch.reduce((s, r) => s + r.v, 0);
+  const useDuty = hasDuty && t.duty > 0;
+  const chapterPanel = `<div class="panel"><h4><span class="dot"></span>${useDuty ? 'Duty' : 'Value'} by HS chapter</h4>
+    <div class="donut-wrap">${donut(ch, chTotal, useDuty ? 'Duty' : 'Value', money(chTotal, ''))}
+    <div class="donut-legend">${ch.map(r => `<div><i style="background:${r.c}"></i>
+      <span title="${escapeHtml(r.label)}">${r.key !== 'other' && r.key !== '??' ? `<b>${r.key}</b> ` : ''}${escapeHtml(r.label)}</span>
+      <span style="color:var(--text-muted)">${chTotal ? Math.round(100 * r.v / chTotal) : 0}%</span></div>`).join('')}</div></div></div>`;
+
+  const originPanel = `<div class="panel"><h4><span class="dot"></span>Value by country of origin</h4>${bars(a.by_origin, cur)}</div>`;
+
+  const bandMax = Math.max(1, ...a.rate_bands.map(b => b.count));
+  const bandPanel = `<div class="panel"><h4><span class="dot"></span>Items by duty rate</h4>
+    <div class="hist">${a.rate_bands.map(b => `<div class="hist-col" title="${b.count} item(s) at ${b.label}">
+      <div class="hist-n">${b.count}</div><div class="hist-bar" style="height:${Math.max(3, 90 * b.count / bandMax)}px;background:${BAND_COLORS[b.label]}"></div>
+      <div class="hist-l">${b.label}</div></div>`).join('')}</div></div>`;
+
+  const topPanel = `<div class="panel"><h4><span class="dot"></span>Top duty items</h4>${
+    a.top_duty_items.length ? `<div class="top-list">${a.top_duty_items.map((r, i) => `<div class="top-item">
+      <div class="rank" style="background:${GRADS[i % GRADS.length]}">${i + 1}</div>
+      <div style="min-width:0"><div class="t-desc">${escapeHtml(r.description || '—')}</div>
+        <div class="t-sub"><span class="code-tag">${escapeHtml(r.hs_code || '—')}</span> · ${money(r.value, cur)} @ ${Number(r.duty_rate)}%</div></div>
+      <div style="font-weight:800;color:var(--c-pink)">${money(r.duty, cur)}</div></div>`).join('')}</div>`
+    : '<div class="empty" style="padding:18px">No dutiable items (yet)</div>'}</div>`;
+
+  $(target).innerHTML = `<div class="dash">
+    ${opts.kpis === false ? '' : `<div class="dash-kpis">${kpis}</div>`}
+    <div class="dash-row">${costPanel}${srcPanel}</div>
+    <div class="dash-row">${chapterPanel}${originPanel}</div>
+    <div class="dash-row">${bandPanel}${topPanel}</div>
+  </div>`;
+}
+
 function money(n, cur) {
   const v = Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return cur ? `${v} ${escapeHtml(cur)}` : v;
@@ -1395,12 +1671,18 @@ async function previewFile() {
 function renderPreview(data) {
   const s = data.stats;
   $('previewSub').textContent = `Filename: ${data.filename}`;
+  const at = (data.analytics || {}).totals || {};
+  const pcur = data.general.invoice_currency || '';
   $('previewStats').innerHTML = `
-    <div class="stat"><div class="stat-label">Total Items</div><div class="stat-value accent">${s.total_items}</div></div>
-    <div class="stat"><div class="stat-label">Header Fields</div><div class="stat-value info">${Object.keys(data.general).length}</div></div>
-    <div class="stat"><div class="stat-label">Missing HS Codes</div><div class="stat-value ${s.missing_hs_codes > 0 ? '' : 'success'}">${s.missing_hs_codes}</div></div>
-    <div class="stat"><div class="stat-label">Will Auto-Lookup</div><div class="stat-value">${s.will_auto_lookup > 0 ? 'Yes' : 'No'}</div></div>
+    <div class="stat"><div class="stat-label">Total Items</div><div class="stat-value">${s.total_items}</div><div class="stat-foot">${at.chapters || 0} HS chapter(s)</div></div>
+    <div class="stat"><div class="stat-label">Goods Value</div><div class="stat-value">${money(at.item_value, '')}</div><div class="stat-foot">${escapeHtml(pcur)}</div></div>
+    <div class="stat"><div class="stat-label">Gross Mass</div><div class="stat-value">${num(at.gross_mass, 1)}</div><div class="stat-foot">kg · ${num(at.packages)} pkgs</div></div>
+    <div class="stat"><div class="stat-label">Missing HS Codes</div><div class="stat-value">${s.missing_hs_codes}</div><div class="stat-foot">${s.will_auto_lookup > 0 ? 'will be auto-looked-up' : 'all present ✓'}</div></div>
   `;
+  renderDashboard('previewDash', data.analytics, pcur, { hasDuty: false, kpis: false });
+  const pw = (data.warnings || []);
+  if (pw.length) $('previewDash').insertAdjacentHTML('afterbegin',
+    `<div class="alert alert-warning"><span class="alert-icon">⚠</span><span>${pw.slice(0, 6).map(escapeHtml).join('<br>')}${pw.length > 6 ? `<br>…and ${pw.length - 6} more` : ''}</span></div>`);
 
   // General info
   const g = data.general;
@@ -1427,7 +1709,7 @@ function renderPreview(data) {
         <td>${i + 1}</td>
         <td>${hsCell}</td>
         <td>${escapeHtml(String(it.description || it.commercial_description || ''))}</td>
-        <td>${escapeHtml(String(it.country_origin || it.country_of_origin || ''))}</td>
+        <td>${flag(it.country_origin || it.country_of_origin)}${escapeHtml(String(it.country_origin || it.country_of_origin || ''))}</td>
         <td>${escapeHtml(String(it.gross_mass || ''))}</td>
         <td>${escapeHtml(String(it.item_price || ''))}</td>
         <td>${escapeHtml(String(it.no_packages || it.no_of_packages || ''))}</td>
@@ -1507,72 +1789,57 @@ async function generateSAD() {
 
 function renderResult(d) {
   $('downloadLink').href = d.download_url;
-  $('resultSub').textContent = `${d.item_count} item(s) · ${d.hs_auto_filled} HS code(s) auto-filled`;
-
-  // Duty summary (if available)
   const ds = d.duty_summary || {};
   const cur = ds.currency || '';
   const prefLabel = { general: 'General', safta: 'SAFTA', cmfta: 'CMFTA' }[ds.preferential] || 'General';
+  $('resultSub').textContent = `${d.item_count} item(s) · ${d.hs_auto_filled} HS code(s) auto-filled · ${prefLabel} tariff · ${d.download_url.split('/').pop()}`;
   const warn = (ds.warnings || []);
   $('resultWarnings').innerHTML = warn.length
     ? `<div class="alert alert-warning"><span class="alert-icon">⚠</span><span>${warn.slice(0, 8).map(escapeHtml).join('<br>')}${warn.length > 8 ? `<br>…and ${warn.length - 8} more` : ''}</span></div>`
     : '';
-  const dutyCells = (ds.total_item_value !== undefined) ? `
-    <div class="info-cell"><div class="info-label">Total Invoice Value</div><div class="info-value">${money(ds.total_item_value, cur)}</div></div>
-    <div class="info-cell" style="background: var(--primary-soft);"><div class="info-label" style="color: var(--primary);">Total Customs Duty (${prefLabel})</div><div class="info-value" style="color: var(--primary);">${money(ds.total_duty || 0, cur)}</div></div>
-    <div class="info-cell" style="background: var(--success-soft);"><div class="info-label" style="color: var(--success);">Grand Total (w/ Duty)</div><div class="info-value" style="color: var(--success);">${money(ds.total_with_duty || 0, cur)}</div></div>
-    <div class="info-cell"><div class="info-label">Items w/ Duty Rate</div><div class="info-value">${ds.items_with_duty || 0} / ${ds.items_missing_duty || 0} missing</div></div>
-  ` : '';
 
-  $('resultInfo').innerHTML = `
-    <div class="info-cell"><div class="info-label">BL Number</div><div class="info-value">${escapeHtml(d.bl_number)}</div></div>
-    <div class="info-cell"><div class="info-label">Vessel</div><div class="info-value">${escapeHtml(d.vessel)}</div></div>
-    <div class="info-cell"><div class="info-label">Consignee</div><div class="info-value">${escapeHtml(d.consignee)}</div></div>
-    <div class="info-cell"><div class="info-label">Country of Export</div><div class="info-value">${escapeHtml(d.country_of_export)}</div></div>
-    <div class="info-cell"><div class="info-label">Delivery Terms</div><div class="info-value">${escapeHtml(d.delivery_terms)}</div></div>
-    <div class="info-cell"><div class="info-label">Items</div><div class="info-value">${d.item_count}</div></div>
-    <div class="info-cell"><div class="info-label">HS Auto-Filled</div><div class="info-value" style="color: var(--success); font-weight: 700;">${d.hs_auto_filled}</div></div>
-    ${dutyCells}
-  `;
+  $('resultInfo').innerHTML = [
+    ['BL Number', d.bl_number], ['Vessel', d.vessel], ['Consignee', d.consignee],
+    ['Country of Export', flag(d.country_of_export) + escapeHtml(d.country_of_export), true],
+    ['Delivery Terms', d.delivery_terms],
+  ].map(([l, v, raw]) => `<div class="info-cell"><div class="info-label">${l}</div><div class="info-value">${raw ? v : escapeHtml(v)}</div></div>`).join('');
+
+  renderDashboard('resultDash', d.analytics, cur);
 
   if (d.items_preview && d.items_preview.length > 0) {
-    let rows = d.items_preview.map((it, i) => {
+    const rows = d.items_preview.map((it, i) => {
       const hs = it.hs_code ? `<span class="code-tag">${escapeHtml(it.hs_code)}</span>` : '<span class="tag tag-warning">—</span>';
-      const lookedUp = it.looked_up ? '<span class="tag tag-info">Auto</span>' : '<span class="tag tag-success">Manual</span>';
-      const dutyRate = (it.duty_rate !== null && it.duty_rate !== undefined)
-        ? `<span style="color: var(--primary); font-weight: 700;">${Number(it.duty_rate).toFixed(2)}%</span>`
-        : '<span style="color: var(--text-soft);">—</span>';
-      const dutyAmt = (it.duty_amount && it.duty_amount > 0)
-        ? `<span style="color: var(--primary);">${money(it.duty_amount, cur)}</span>`
-        : `<span style="color: var(--text-soft);">${money(0, cur)}</span>`;
-      const total = (it.total_with_duty !== undefined)
-        ? `<span style="color: var(--success); font-weight: 700;">${money(it.total_with_duty, cur)}</span>`
-        : '';
-      const price = (it.item_price !== undefined) ? money(it.item_price, cur) : '';
-      return `<tr>
+      const src = it.looked_up ? '<span class="tag tag-info">Auto</span>' : '<span class="tag tag-success">Manual</span>';
+      const pref = (it.safta_rate != null || it.cmfta_rate != null)
+        ? `<div style="font-size:10px;color:var(--text-muted);margin-top:2px">SAFTA ${it.safta_rate ?? '—'}% · CMFTA ${it.cmfta_rate ?? '—'}%</div>` : '';
+      return `<tr class="row-zebra">
         <td>${i + 1}</td>
         <td>${hs}</td>
-        <td>${lookedUp}</td>
-        <td>${escapeHtml(it.description)}</td>
-        <td style="text-align: right;">${price}</td>
-        <td style="text-align: right;">${dutyRate}</td>
-        <td style="text-align: right;">${dutyAmt}</td>
-        <td style="text-align: right;">${total}</td>
+        <td>${src}</td>
+        <td>${escapeHtml(it.description)}${it.brand ? `<span class="chip">${escapeHtml(it.brand)}</span>` : ''}</td>
+        <td style="white-space:nowrap">${flag(it.country_origin)}${escapeHtml(it.country_origin || '')}</td>
+        <td style="text-align:right">${it.gross_mass != null ? num(it.gross_mass, 1) : ''}</td>
+        <td style="text-align:right">${it.no_packages != null ? num(it.no_packages) : ''}</td>
+        <td style="text-align:right;white-space:nowrap">${money(it.item_price, cur)}</td>
+        <td style="text-align:right">${ratePill(it.duty_rate)}${pref}</td>
+        <td style="text-align:right;white-space:nowrap;color:var(--c-pink);font-weight:600">${it.duty_amount > 0 ? money(it.duty_amount, cur) : `<span style="color:var(--text-soft)">${money(0, cur)}</span>`}</td>
+        <td style="text-align:right;white-space:nowrap;color:var(--success);font-weight:700">${money(it.total_with_duty, cur)}</td>
       </tr>`;
     }).join('');
+    const shown = d.items_preview.length < d.item_count ? `first ${d.items_preview.length} of ${d.item_count}` : `all ${d.item_count}`;
     $('itemsPreviewWrap').innerHTML = `
-      <h4 style="margin: 0 0 8px; font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Items Preview (first ${d.items_preview.length}) · with Customs Duty</h4>
-      <div class="table-wrap"><table>
+      <h4 style="margin: 0 0 8px; font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Line items (${shown}) · ${prefLabel} duty</h4>
+      <div class="table-wrap" style="max-height:520px;overflow:auto"><table>
         <thead><tr>
-          <th>#</th><th>HS Code</th><th>Source</th><th>Description</th>
-          <th style="text-align: right;">Item Price</th>
-          <th style="text-align: right; color: var(--primary);">Duty Rate</th>
-          <th style="text-align: right; color: var(--primary);">Duty Amount</th>
-          <th style="text-align: right; color: var(--success);">Total w/ Duty</th>
+          <th>#</th><th>HS Code</th><th>Source</th><th>Description</th><th>Origin</th>
+          <th style="text-align:right">Mass kg</th><th style="text-align:right">Pkgs</th>
+          <th style="text-align:right">Item Price</th>
+          <th style="text-align:right">Duty Rate</th>
+          <th style="text-align:right">Duty</th>
+          <th style="text-align:right">Total w/ Duty</th>
         </tr></thead>
         <tbody>${rows}</tbody>
-      </table></div>
-    `;
+      </table></div>`;
   } else {
     $('itemsPreviewWrap').innerHTML = '';
   }
@@ -1628,7 +1895,7 @@ function renderHsResults(data) {
       <td>${i + 1}</td>
       <td><span class="code-tag">${escapeHtml(r.hs_code)}</span></td>
       <td>${escapeHtml(r.description)}</td>
-      <td class="rate-cell">${fmtRate(r.duty_rate)}</td>
+      <td class="rate-cell">${ratePill(r.duty_rate)}</td>
       <td class="rate-cell">${fmtRate(r.safta_rate)}</td>
       <td class="rate-cell">${fmtRate(r.cmfta_rate)}</td>
       <td><button class="btn btn-ghost" onclick="copyText('${escapeHtml(r.hs_code)}')" style="padding: 4px 10px; font-size: 11px;">📋 Copy</button></td>
@@ -1658,20 +1925,29 @@ async function loadHistory() {
   try {
     const r = await fetch('/api/history');
     const data = await r.json();
-    if (!data.files || data.files.length === 0) {
+    const files = data.files || [];
+    const today = new Date().toISOString().slice(0, 10);
+    const todayN = files.filter(f => (f.modified || '').startsWith(today)).length;
+    const kb = files.reduce((s, f) => s + (f.size_kb || 0), 0);
+    $('heroFiles').textContent = files.length >= 50 ? '50+' : files.length;
+    $('heroToday').textContent = todayN;
+    $('heroLast').textContent = files.length ? files[0].modified.slice(5) : '—';
+    $('historyStats').innerHTML = `
+      <div style="background:var(--grad-warm)"><b>${files.length}</b><span>Files</span></div>
+      <div style="background:var(--grad-cool)"><b>${todayN}</b><span>Today</span></div>
+      <div style="background:var(--grad-fresh)"><b>${kb >= 1024 ? (kb / 1024).toFixed(1) + ' MB' : Math.round(kb) + ' KB'}</b><span>Total</span></div>`;
+    if (!files.length) {
       $('historyList').innerHTML = '<div class="empty"><div class="empty-icon">🗂</div>No files yet</div>';
       return;
     }
-    $('historyList').innerHTML = data.files.map(f => `
+    $('historyList').innerHTML = files.map((f, i) => `
       <a class="history-item" href="${f.url}" download>
-        <div class="history-name">${escapeHtml(f.name)}</div>
-        <div class="history-meta">
-          <span>📅 ${f.modified}</span>
-          <span>·</span>
-          <span>💾 ${f.size_kb} KB</span>
+        <div class="h-badge" style="background:${GRADS[i % GRADS.length]}">XLS</div>
+        <div class="h-body">
+          <div class="history-name">${escapeHtml(f.name)}</div>
+          <div class="history-meta"><span>📅 ${escapeHtml(f.modified)}</span><span>·</span><span>💾 ${f.size_kb} KB</span></div>
         </div>
-      </a>
-    `).join('');
+      </a>`).join('');
   } catch (e) {
     $('historyList').innerHTML = `<div class="empty">Failed to load history</div>`;
   }

@@ -13,6 +13,7 @@ Runs entirely on your own computer. No accounts, no credits.
 - **HS code auto-fill**: items with no commodity code are matched by description against the Maldives Customs tariff.
 - **Duty calculation**: duty rate (box 43), duty amount and IPV tax lines (box 47) for every item, with a choice of **General**, **SAFTA** or **CMFTA** rates.
 - **Command line** mode for batch or scripted use — no browser needed.
+- **Shipment dashboard**: goods / CIF / landed cost, effective duty rate, duty by HS chapter, value by origin country, rate bands, top dutiable items, and checks against the declared invoice total and package count — on every result and in the file preview.
 - **History** of generated files, downloadable from the sidebar.
 
 ## Quick start (Windows)
@@ -90,7 +91,7 @@ Interactive docs at <http://localhost:8000/docs>. Main endpoints:
 |---|---|---|
 | `POST` | `/generate?preferential=general\|safta\|cmfta` | Upload Excel → SAD |
 | `POST` | `/api/generate-manual` | JSON `{general, items, preferential}` → SAD |
-| `POST` | `/api/preview` | Parse an upload without generating |
+| `POST` | `/api/preview` | Parse an upload without generating (includes `analytics`) |
 | `GET` | `/api/hs-lookup?description=…` | HS code search (with duty / SAFTA / CMFTA rates) |
 | `GET` | `/api/hs-tariff/{hs_code}` | Tariff for one code |
 | `GET` | `/api/history` · `/output/{file}` · `DELETE /output/{file}` | Generated files |

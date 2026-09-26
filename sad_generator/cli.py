@@ -80,6 +80,16 @@ def cmd_generate(args: argparse.Namespace) -> int:
     print(f"  Item value:   {s['total_item_value']:,.2f} {cur}")
     print(f"  Duty ({s['preferential']}): {s['total_duty']:,.2f} {cur}"
           f"  — {s['items_missing_duty']} item(s) without a rate")
+    a = result.analytics
+    cb, t = a["cost_breakdown"], a["totals"]
+    print(f"  Effective:    {t['effective_rate']:.2f}%   CIF {cb['cif']:,.2f}   landed {cb['landed']:,.2f} {cur}")
+    print(f"  Mass / pkgs:  {t['gross_mass']:,.1f} kg / {t['packages']:,}")
+    print("  By HS chapter:")
+    for r in a["by_chapter"]:
+        print(f"    {r['key']:>5}  {r['label'][:28]:<28} {r['value']:>14,.2f}  {r['share']:>5.1f}%  duty {r['duty']:,.2f}")
+    print("  By origin:")
+    for r in a["by_origin"]:
+        print(f"    {r['label'][:12]:<12} {r['value']:>14,.2f}  {r['share']:>5.1f}%  ({r['items']} items)")
     for w in s.get("warnings", []):
         print(f"  ! {w}")
     return 0

@@ -51,7 +51,7 @@ def test_duty_accepts_string_rate_and_missing_rate():
 
 def test_summary_covers_all_items_not_just_preview():
     items = [{"item_price": 10, "duty_rate": 10}] * 120
-    preview, summary = build_items_preview_and_duty(items, currency="EUR")
+    preview, summary = build_items_preview_and_duty(items, currency="EUR", preview_limit=50)
     assert len(preview) == 50
     assert summary["total_item_value"] == 1200.0
     assert summary["total_duty"] == 120.0
@@ -70,3 +70,35 @@ def test_parse_tariff_rows():
         "hs_code": "6403990099", "description": "Other footwear", "hs_unit": "PR",
         "duty_rate": 20.0, "safta_rate": 15.0, "cmfta_rate": 5.5,
     }]
+
+
+def test_analytics():
+    from sad_generator.analytics import build_analytics
+
+    general = {"invoice_amount": 1500, "external_freight": 100, "insurance": 10, "total_packages": 9}
+    items = [
+        {"hs_code": "6403990099", "country_origin": "CN", "item_price": 1000, "duty_rate": 20,
+         "gross_mass": 50, "no_packages": 5, "description": "Shoes"},
+        {"hs_code": "1006300099", "country_origin": "IN", "item_price": 400, "duty_rate": 0,
+         "gross_mass": 950, "no_packages": 4, "_hs_looked_up": True},
+        {"hs_code": "", "country_origin": "cn", "item_price": 100},
+    ]
+    a = build_analytics(general, items)
+    assert a["totals"]["duty"] == 200.0 and a["totals"]["effective_rate"] == 13.33
+    assert a["totals"]["packages"] == 9 and a["totals"]["gross_mass"] == 1000.0
+    assert a["cost_breakdown"]["cif"] == 1610.0 and a["cost_breakdown"]["landed"] == 1810.0
+    assert a["reconciliation"]["matches"] is True
+    assert a["by_origin"][0]["key"] == "CN" and a["by_origin"][0]["items"] == 2
+    assert a["by_chapter"][0]["label"] == "Footwear"
+    assert a["hs_sources"] == {"manual": 1, "auto": 1, "missing": 1}
+    bands = {b["label"]: b["count"] for b in a["rate_bands"]}
+    assert bands["0%"] == 1 and bands["10–20%"] == 1 and bands["Unknown"] == 1
+    assert a["top_duty_items"][0]["duty"] == 200.0
+
+
+def test_analytics_zero_invoice_falls_back_to_items():
+    from sad_generator.analytics import build_analytics
+
+    a = build_analytics({"invoice_amount": 0, "external_freight": 50}, [{"item_price": 200, "duty_rate": 10}])
+    assert a["cost_breakdown"]["goods"] == 200.0 and a["cost_breakdown"]["cif"] == 250.0
+    assert a["reconciliation"]["matches"] is None

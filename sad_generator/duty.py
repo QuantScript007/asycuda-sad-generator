@@ -40,7 +40,7 @@ def build_items_preview_and_duty(
     items: list[dict],
     preferential: str = "general",
     currency: str = "USD",
-    preview_limit: int = 50,
+    preview_limit: int = 500,
 ) -> tuple[list[dict], dict]:
     """Per-item preview rows (first ``preview_limit``) and totals over *all* items."""
     preview: list[dict] = []
@@ -69,6 +69,10 @@ def build_items_preview_and_duty(
                 "hs_unit": it.get("hs_unit", ""),
                 "safta_rate": it.get("safta_rate"),
                 "cmfta_rate": it.get("cmfta_rate"),
+                "country_origin": str(it.get("country_origin") or it.get("country_of_origin") or "").upper(),
+                "gross_mass": parse_number(it.get("gross_mass"), None),
+                "no_packages": parse_number(it.get("no_packages", it.get("no_of_packages")), None),
+                "brand": str(it.get("brand") or ""),
             })
     summary = {
         "preferential": preferential,

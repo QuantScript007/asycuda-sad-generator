@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 from . import config
+from .analytics import build_analytics
 from .duty import build_items_preview_and_duty, check_preferential
 from .hs_lookup import enrich_items_hs_codes
 from .sad_builder import create_sad_workbook
@@ -24,6 +25,7 @@ class GenerateResult:
     hs_auto_filled: int
     items_preview: list[dict] = field(default_factory=list)
     duty_summary: dict = field(default_factory=dict)
+    analytics: dict = field(default_factory=dict)
 
     def to_response(self) -> dict:
         g = self.general
@@ -39,6 +41,7 @@ class GenerateResult:
             "output_file": str(self.output_path),
             "items_preview": self.items_preview,
             "duty_summary": self.duty_summary,
+            "analytics": self.analytics,
         }
 
 
@@ -103,4 +106,5 @@ async def generate(
         hs_auto_filled=sum(1 for i in items if i.get("_hs_looked_up") and i.get("hs_code")),
         items_preview=preview,
         duty_summary=summary,
+        analytics=build_analytics(general, items, preferential),
     )

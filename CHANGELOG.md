@@ -1,5 +1,21 @@
 # Changelog
 
+## 3.1.0 — 2026-09-26
+
+### Added
+- **Shipment dashboard** on every generated SAD and in the file preview (*Insights* tab):
+  - KPI tiles — line items, goods value (and value per kg), customs duty with effective rate, CIF value, landed cost, gross mass and packages;
+  - cost build-up bar — goods, freight, insurance, other costs, duty;
+  - duty (or value) by HS chapter as a donut chart, with chapter names;
+  - value by country of origin with flags;
+  - items by duty-rate band (0%, 0–10%, 10–20%, 20–30%, >30%, unknown);
+  - top 5 dutiable items;
+  - checks — items vs declared invoice total, items vs declared package count, HS code source (provided / auto-filled / missing), highest-rate item.
+- Line-items table now shows origin, gross mass, packages, brand and SAFTA/CMFTA rates, with colour-coded rate pills; shows up to 500 items (was 50) in a scrollable table.
+- New colour theme: gradient hero with live counters, colour-coded steps and cards, gradient stat tiles, coloured history with daily totals. Works in light and dark mode.
+- `generate` on the command line prints effective rate, CIF / landed cost, mass, and breakdowns by HS chapter and origin.
+- `analytics` object in the `/generate`, `/api/generate-manual` and `/api/preview` responses.
+
 ## 3.0.0 — 2026-09-26
 
 ### Fixed
