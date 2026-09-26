@@ -25,3 +25,6 @@ SAD_*.xlsx
 Thumbs.db
 .vscode/
 .idea/
+
+# ...except the bundled ASYCUDA SAD model template
+!sad_generator/templates/*.xls
