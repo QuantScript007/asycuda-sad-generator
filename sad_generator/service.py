@@ -10,6 +10,7 @@ from pathlib import Path
 from . import config
 from .analytics import build_analytics
 from .duty import build_items_preview_and_duty, check_preferential
+from .exchange import resolve_rate
 from .hs_lookup import enrich_items_hs_codes
 from .sad_builder import create_sad_workbook
 from .sad_model import create_sad_model_workbook
@@ -74,6 +75,7 @@ async def generate(
     lookup: bool = True,
     output_dir: Path | None = None,
     output_path: Path | None = None,
+    exchange_rate: float | None = None,
 ) -> GenerateResult:
     """Enrich items with HS codes / duty rates, build the SAD and save it."""
     preferential = check_preferential(preferential)
@@ -87,9 +89,12 @@ async def generate(
     for it in items:
         it["hs_code"] = normalize_hs_code(it.get("hs_code"))
 
+    currency = str(general.get("invoice_currency") or "USD").upper()
+    fx = await resolve_rate(currency, exchange_rate if exchange_rate is not None else general.get("exchange_rate"),
+                            lookup=lookup)
     payload = {"general": general, "items": items}
-    sad_bytes, model_warnings = create_sad_model_workbook(payload)   # the ASYCUDA import file
-    duty_bytes = create_sad_workbook(payload, preferential)          # duty calculation sheet
+    sad_bytes, model_warnings = create_sad_model_workbook(payload)            # the ASYCUDA import file
+    duty_bytes = create_sad_workbook(payload, preferential, fx["rate"])       # duty calculation sheet
 
     if output_path is None:
         out_dir = Path(output_dir or config.OUTPUT_DIR)
@@ -102,10 +107,15 @@ async def generate(
     duty_sheet_path.write_bytes(duty_bytes)
     log.info("Saved %s and %s", output_path, duty_sheet_path.name)
 
-    preview, summary = build_items_preview_and_duty(
-        items, preferential, currency=str(general.get("invoice_currency") or "USD")
-    )
-    summary["warnings"] = validate({"general": general, "items": items}) + model_warnings
+    preview, summary = build_items_preview_and_duty(items, preferential, currency=currency, fx_rate=fx["rate"])
+    summary["exchange_source"] = fx["source"]
+    fx_warnings = []
+    if fx["source"] == "missing":
+        fx_warnings.append(f"No MVR exchange rate for {currency} — enter it to calculate duty and revenue in MVR.")
+    elif fx["source"] == "fallback":
+        fx_warnings.append(f"Customs exchange rates couldn't be reached — using {fx['rate']} MVR per {currency}. "
+                           "Check it on customs.gov.mv/eServices/exchangeRate.")
+    summary["warnings"] = validate({"general": general, "items": items}) + model_warnings + fx_warnings
     return GenerateResult(
         general=general,
         items=items,
@@ -113,6 +123,6 @@ async def generate(
         hs_auto_filled=sum(1 for i in items if i.get("_hs_looked_up") and i.get("hs_code")),
         items_preview=preview,
         duty_summary=summary,
-        analytics=build_analytics(general, items, preferential),
+        analytics=build_analytics(general, items, preferential, fx["rate"]),
         duty_sheet_path=duty_sheet_path,
     )

@@ -11,6 +11,7 @@ Runs entirely on your own computer. No accounts, no credits.
 ## What it does
 
 - **Excel → SAD**: upload the SAD model, the simple template or a previously generated SAD (`.xls` / `.xlsx`) and download the **official ASYCUDA SAD model filled in** — same sheets, formatting, dropdowns and field hints as the original model, ready to import.
+- **Duty & revenue in MVR**: duty = item price × duty % × MVR rate, revenue = item price × MVR rate × 1%, using the [Maldives Customs exchange rate](https://customs.gov.mv/eServices/exchangeRate) (fetched automatically, or type your own).
 - **Duty worksheet**: a second download with item-by-item duty rate, duty amount and IPV tax lines.
 - **Manual entry**: fill the declaration and line items in the browser instead of Excel.
 - **HS code auto-fill**: items with no commodity code are matched by description against the Maldives Customs tariff.
@@ -66,6 +67,7 @@ python sad_generator_local.py serve --port 8000 [--host 0.0.0.0] [--output-dir D
 # Convert one file without the browser
 python sad_generator_local.py generate shipment.xlsx -o SAD_out.xls --preferential safta
 python sad_generator_local.py generate shipment.xlsx --no-lookup     # offline: skip tariff lookups
+python sad_generator_local.py generate shipment.xlsx --rate 15.42     # set the MVR exchange rate
 
 # Write a blank SAD model (or the simple template with --simple)
 python sad_generator_local.py template -o SAD_MODEL.xls
@@ -105,6 +107,8 @@ Environment variables (all optional):
 | `SAD_HS_CACHE_TTL` | `21600` | Seconds to cache tariff results |
 | `SAD_MAX_UPLOAD_MB` | `20` | Upload size limit |
 | `SAD_MODEL_PATH` | bundled `SAD_MODEL.xls` | SAD model used for the download |
+| `SAD_FX_URL` | Customs exchange-rate page | Where MVR rates are read from |
+| `SAD_REVENUE_RATE` | `0.01` | Revenue = price × MVR rate × this |
 
 ## API
 

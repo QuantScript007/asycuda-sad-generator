@@ -68,7 +68,8 @@ def _group_rows(groups: dict, total_value: float, limit: int) -> list[dict]:
     return rows
 
 
-def build_analytics(general: dict, items: list[dict], preferential: str = "general") -> dict:
+def build_analytics(general: dict, items: list[dict], preferential: str = "general",
+                    fx_rate: float | None = None) -> dict:
     """Aggregate figures for the dashboard. Works with or without duty rates."""
     g = general or {}
     by_origin: dict = {}
@@ -139,7 +140,23 @@ def build_analytics(general: dict, items: list[dict], preferential: str = "gener
     rated = [r for r in duty_rows if r["duty_rate"] is not None]
     highest = max(rated, key=lambda r: r["duty_rate"]) if rated else None
 
+    fx = parse_number(fx_rate, None)
+    mvr = None
+    if fx:
+        from . import config
+        rev = config.REVENUE_RATE
+        mvr = {
+            "exchange_rate": fx,
+            "revenue_rate": rev,
+            "goods": round(total_value * fx, 2),
+            "cif": round(cif * fx, 2),
+            "duty": round(total_duty * fx, 2),
+            "revenue": round(total_value * fx * rev, 2),
+            "payable": round(total_duty * fx + total_value * fx * rev, 2),
+        }
+
     return {
+        "mvr": mvr,
         "totals": {
             "items": len(items),
             "item_value": round(total_value, 2),

@@ -72,6 +72,7 @@ def cmd_generate(args: argparse.Namespace) -> int:
         lookup=not args.no_lookup,
         output_dir=Path(args.output_dir) if args.output_dir else None,
         output_path=out_path,
+        exchange_rate=args.rate,
     ))
     s = result.duty_summary
     cur = s.get("currency", "")
@@ -83,6 +84,10 @@ def cmd_generate(args: argparse.Namespace) -> int:
           f"  — {s['items_missing_duty']} item(s) without a rate")
     a = result.analytics
     cb, t = a["cost_breakdown"], a["totals"]
+    if a.get("mvr"):
+        m = a["mvr"]
+        print(f"  Exchange:     {m['exchange_rate']} MVR per {cur}  ({s.get('exchange_source')})")
+        print(f"  Duty (MVR):   {m['duty']:,.2f}   revenue 1%: {m['revenue']:,.2f}   payable: {m['payable']:,.2f} MVR")
     print(f"  Effective:    {t['effective_rate']:.2f}%   CIF {cb['cif']:,.2f}   landed {cb['landed']:,.2f} {cur}")
     print(f"  Mass / pkgs:  {t['gross_mass']:,.1f} kg / {t['packages']:,}")
     print("  By HS chapter:")
@@ -131,7 +136,8 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--output-dir", help="folder for the output file")
     g.add_argument("--preferential", choices=["general", "safta", "cmfta"], default="general",
                    help="tariff column used for duty (default general)")
-    g.add_argument("--no-lookup", action="store_true", help="skip online HS / tariff lookups")
+    g.add_argument("--no-lookup", action="store_true", help="skip online HS / tariff / exchange-rate lookups")
+    g.add_argument("--rate", type=float, help="MVR per unit of the invoice currency (default: Customs rate)")
     g.set_defaults(func=cmd_generate)
 
     t = sub.add_parser("template", help="write a blank input file")

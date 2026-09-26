@@ -473,6 +473,8 @@
   .pref-wrap { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
   .pref-select { padding: 8px 10px; border: 1px solid var(--border, #E2E8F0); border-radius: 8px; background: var(--bg-elev); color: inherit; font: inherit; font-weight: 500; }
   .rate-cell { text-align: right; white-space: nowrap; }
+  .fx-link { font-size: 12px; font-weight: 700; color: var(--c-violet); text-decoration: none; align-self: center; }
+  .mvr { color: var(--c-violet); font-weight: 700; white-space: nowrap; }
   /* Footer */
   .footer {
     margin-top: 40px;
@@ -915,6 +917,9 @@
               <option value="safta">SAFTA preferential</option>
               <option value="cmfta">CMFTA preferential</option>
             </select></label>
+          <label class="pref-wrap" title="MVR per unit of the invoice currency. Leave empty to use today's Maldives Customs rate.">MVR rate
+            <input id="fxRate" class="pref-select" style="width:120px" inputmode="decimal" placeholder="auto"></label>
+          <a class="fx-link" href="https://customs.gov.mv/eServices/exchangeRate" target="_blank" rel="noopener" title="Maldives Customs exchange rates">rates ↗</a>
           <button class="btn btn-primary" id="generateBtn" onclick="generateSAD()" disabled>⚡ Generate SAD File</button>
         </div>
 
@@ -1547,6 +1552,9 @@ function renderDashboard(target, a, cur, opts = {}) {
     hasDuty ? kpi('🏛', 'Customs duty', money(t.duty, cur), `effective rate ${num(t.effective_rate, 2)}%`, GRADS[4]) : '',
     kpi('🚢', 'CIF value', money(cb.cif, cur), `freight + insurance + other`, GRADS[5]),
     hasDuty ? kpi('🧾', 'Landed (CIF + duty)', money(cb.landed, cur), '', GRADS[2]) : '',
+    (hasDuty && a.mvr) ? kpi('🇲🇻', 'Duty in MVR', money(a.mvr.duty, 'MVR'), `price × duty% × ${a.mvr.exchange_rate}`, 'linear-gradient(135deg,#DC2626,#EC4899)') : '',
+    (hasDuty && a.mvr) ? kpi('🏦', 'Revenue 1% (MVR)', money(a.mvr.revenue, 'MVR'), `price × ${a.mvr.exchange_rate} × ${a.mvr.revenue_rate}`, 'linear-gradient(135deg,#0EA5E9,#6366F1)') : '',
+    (hasDuty && a.mvr) ? kpi('💳', 'Total payable (MVR)', money(a.mvr.payable, 'MVR'), 'duty + revenue', 'linear-gradient(135deg,#16A34A,#0D9488)') : '',
     kpi('⚖️', 'Gross mass', `${num(t.gross_mass, 1)} kg`, `${num(t.packages)} package(s)${t.declared_packages ? ` · declared ${num(t.declared_packages)}` : ''}`, GRADS[3]),
   ].join('');
 
@@ -1769,7 +1777,8 @@ async function generateSAD() {
   try {
     const fd = new FormData();
     fd.append('file', selectedFile);
-    const r = await fetch('/generate?preferential=' + encodeURIComponent($('prefSelect').value), { method: 'POST', body: fd });
+    const fxv = ($('fxRate').value || '').trim();
+    const r = await fetch('/generate?preferential=' + encodeURIComponent($('prefSelect').value) + (fxv ? '&exchange_rate=' + encodeURIComponent(fxv) : ''), { method: 'POST', body: fd });
     const data = await r.json();
     if (!r.ok) throw new Error(data.detail || 'Generation failed');
 
@@ -1798,7 +1807,8 @@ function renderResult(d) {
   const ds = d.duty_summary || {};
   const cur = ds.currency || '';
   const prefLabel = { general: 'General', safta: 'SAFTA', cmfta: 'CMFTA' }[ds.preferential] || 'General';
-  $('resultSub').textContent = `${d.item_count} item(s) · ${d.hs_auto_filled} HS code(s) auto-filled · ${prefLabel} tariff · ${d.download_url.split('/').pop()}`;
+  const fxInfo = ds.exchange_rate ? ` · ${ds.exchange_rate} MVR/${cur} (${ds.exchange_source})` : '';
+  $('resultSub').textContent = `${d.item_count} item(s) · ${d.hs_auto_filled} HS code(s) auto-filled · ${prefLabel} tariff${fxInfo} · ${d.download_url.split('/').pop()}`;
   const warn = (ds.warnings || []);
   $('resultWarnings').innerHTML = warn.length
     ? `<div class="alert alert-warning"><span class="alert-icon">⚠</span><span>${warn.slice(0, 8).map(escapeHtml).join('<br>')}${warn.length > 8 ? `<br>…and ${warn.length - 8} more` : ''}</span></div>`
@@ -1830,6 +1840,8 @@ function renderResult(d) {
         <td style="text-align:right">${ratePill(it.duty_rate)}${pref}</td>
         <td style="text-align:right;white-space:nowrap;color:var(--c-pink);font-weight:600">${it.duty_amount > 0 ? money(it.duty_amount, cur) : `<span style="color:var(--text-soft)">${money(0, cur)}</span>`}</td>
         <td style="text-align:right;white-space:nowrap;color:var(--success);font-weight:700">${money(it.total_with_duty, cur)}</td>
+        <td style="text-align:right" class="mvr">${it.duty_mvr != null ? money(it.duty_mvr, '') : ''}</td>
+        <td style="text-align:right" class="mvr">${it.revenue_mvr != null ? money(it.revenue_mvr, '') : ''}</td>
       </tr>`;
     }).join('');
     const shown = d.items_preview.length < d.item_count ? `first ${d.items_preview.length} of ${d.item_count}` : `all ${d.item_count}`;
@@ -1843,6 +1855,8 @@ function renderResult(d) {
           <th style="text-align:right">Duty Rate</th>
           <th style="text-align:right">Duty</th>
           <th style="text-align:right">Total w/ Duty</th>
+          <th style="text-align:right">Duty MVR</th>
+          <th style="text-align:right">Revenue MVR</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table></div>`;
@@ -2344,6 +2358,10 @@ async function generateManualSAD() {
 
 // ── Init ───────────────────────────────────────────────
 loadHistory();
+fetch('/api/exchange-rates?currency=USD').then(r => r.json()).then(x => {
+  const sel = x.selected || {};
+  if (sel.rate) $('fxRate').placeholder = `auto · ${sel.rate}${sel.source === 'customs' ? '' : ' (' + sel.source + ')'}`;
+}).catch(() => {});
 fetch('/api/health').then(r => r.json()).then(h => { if (h.output_dir) $('outputDir').textContent = h.output_dir; }).catch(() => {});
 </script>
 

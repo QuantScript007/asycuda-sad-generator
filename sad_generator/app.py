@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 from . import __version__, config, service
 from .analytics import build_analytics
 from .duty import PREFERENTIAL_KEYS
+from . import exchange
 from .excel_io import read_input_excel
 from .hs_lookup import lookup_hs_candidates, lookup_hs_tariff
 from .sad_builder import create_input_template
@@ -56,6 +57,7 @@ class ManualEntryRequest(BaseModel):
     general: dict = Field(default_factory=dict)
     items: list[dict] = Field(default_factory=list)
     preferential: str = "general"
+    exchange_rate: float | None = None
 
 
 # ── Helpers ──────────────────────────────────────────────────
@@ -124,6 +126,14 @@ async def api_hs_tariff(hs_code: str):
     return result
 
 
+@app.get("/api/exchange-rates")
+async def api_exchange_rates(currency: str = Query("USD", max_length=3)):
+    """MVR exchange rates from Maldives Customs, and the rate that would be used for ``currency``."""
+    rates = await exchange.fetch_rates()
+    return {"source_url": config.FX_URL, "rates": rates, "selected": await exchange.resolve_rate(currency),
+            "revenue_rate": config.REVENUE_RATE}
+
+
 @app.post("/api/preview")
 async def api_preview(file: UploadFile = File(...)):
     """Parse an uploaded Excel file and return what was found (no SAD is generated)."""
@@ -149,6 +159,7 @@ async def api_preview(file: UploadFile = File(...)):
 async def generate_sad(
     file: UploadFile = File(...),
     preferential: str = Query("general", description="general | safta | cmfta"),
+    exchange_rate: float | None = Query(None, gt=0, description="MVR per unit of the invoice currency (default: Customs rate)"),
 ):
     """Upload a filled Excel file and receive an ASYCUDA++ SAD file."""
     preferential = _check_preferential(preferential)
@@ -160,7 +171,7 @@ async def generate_sad(
             "(template format) or the native ASYCUDA SAD layout.",
         )
     log.info("Processing upload %s (%d items)", file.filename, len(data["items"]))
-    result = await service.generate(data, preferential=preferential)
+    result = await service.generate(data, preferential=preferential, exchange_rate=exchange_rate)
     return GenerateResponse(**result.to_response())
 
 
@@ -171,7 +182,8 @@ async def generate_sad_manual(payload: ManualEntryRequest):
     if not payload.items:
         raise HTTPException(422, "Add at least one item before generating.")
     result = await service.generate(
-        {"general": payload.general, "items": payload.items}, preferential=preferential
+        {"general": payload.general, "items": payload.items}, preferential=preferential,
+        exchange_rate=payload.exchange_rate,
     )
     return GenerateResponse(**result.to_response())
 

@@ -5,7 +5,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from sad_generator import config, hs_lookup  # noqa: E402
+from sad_generator import config, exchange, hs_lookup  # noqa: E402
 
 FAKE_TARIFF = {
     "0603120011": {"hs_code": "0603120011", "description": "Carnations", "hs_unit": "KG",
@@ -33,7 +33,11 @@ def offline_lookup(monkeypatch, tmp_path):
             return [FAKE_TARIFF["6403990099"]]
         return []
 
+    async def fake_rates(force=False):
+        return {"USD": 15.42, "EUR": 16.8, "MVR": 1.0}
+
     monkeypatch.setattr(hs_lookup, "_search", fake_search)
+    monkeypatch.setattr(exchange, "fetch_rates", fake_rates)
     monkeypatch.setattr(config, "OUTPUT_DIR", tmp_path / "sad_output")
     hs_lookup.clear_cache()
     return calls

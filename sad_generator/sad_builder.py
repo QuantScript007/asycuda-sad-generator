@@ -19,6 +19,7 @@ _HEADER_STYLE = xlwt.easyxf(
     "pattern: pattern solid, fore_colour pale_blue; borders: bottom thin"
 )
 _TOTAL_STYLE = xlwt.easyxf("font: bold on; borders: top thin")
+_FIELD_BOLD = xlwt.easyxf("font: bold on")
 
 
 def _num(val, default=""):
@@ -30,7 +31,7 @@ def _num(val, default=""):
         return default
 
 
-def create_sad_workbook(data: dict, preferential: str = "general") -> bytes:
+def create_sad_workbook(data: dict, preferential: str = "general", fx_rate: float | None = None) -> bytes:
     """Build the SAD .xls from ``{"general": {...}, "items": [...]}``."""
     preferential = check_preferential(preferential)
     wb = xlwt.Workbook(encoding="utf-8")
@@ -111,6 +112,18 @@ def create_sad_workbook(data: dict, preferential: str = "general") -> bytes:
     ws.write(27, 2, gv("trading_country", ""))
     ws.write(28, 0, "6"); ws.write(28, 1, "Total No. of Package")
     ws.write(28, 2, _num(gv("total_packages", 0), 0))
+    fx = _num(fx_rate)
+    if fx != "":
+        mvr = [calculate_item_duty(it, preferential, fx) for it in items]
+        ws.write(30, 1, "Exchange rate (MVR per unit)", _FIELD_BOLD)
+        ws.write(30, 2, fx)
+        ws.write(30, 3, str(gv("invoice_currency", "USD")))
+        ws.write(31, 1, "Total duty (MVR)", _FIELD_BOLD)
+        ws.write(31, 2, round(sum(m["duty_mvr"] for m in mvr), 2))
+        ws.write(32, 1, "Total revenue 1% (MVR)", _FIELD_BOLD)
+        ws.write(32, 2, round(sum(m["revenue_mvr"] for m in mvr), 2))
+        ws.write(33, 1, "Total payable (MVR)", _FIELD_BOLD)
+        ws.write(33, 2, round(sum(m["payable_mvr"] for m in mvr), 2))
 
     wi = wb.add_sheet("Items")
     # Row 1: Field number header
@@ -157,6 +170,11 @@ def create_sad_workbook(data: dict, preferential: str = "general") -> bytes:
         (28, "Size"),
         (29, "Package Code"),
         (30, "No. of\nPackages"),
+        (31, "Exchange\nrate (MVR)"),
+        (32, "Value\n(MVR)"),
+        (33, "Duty (MVR)\nprice×duty%×rate"),
+        (34, "Revenue (MVR)\nprice×rate×1%"),
+        (35, "Payable (MVR)\nduty+revenue"),
     ]
     for col, lbl in headers:
         wi.write(2, col, lbl, _HEADER_STYLE)
@@ -187,7 +205,13 @@ def create_sad_workbook(data: dict, preferential: str = "general") -> bytes:
             wi.write(r, 6, ip)
 
         # Box 43: Valuation & Duty rate (customs duty percentage)
-        duty_info = calculate_item_duty(item, preferential)
+        duty_info = calculate_item_duty(item, preferential, fx_rate)
+        if "value_mvr" in duty_info:
+            wi.write(r, 31, float(fx_rate))
+            wi.write(r, 32, duty_info["value_mvr"])
+            wi.write(r, 33, duty_info["duty_mvr"])
+            wi.write(r, 34, duty_info["revenue_mvr"])
+            wi.write(r, 35, duty_info["payable_mvr"])
         wi.write(r, 8, "1")  # V.M. = transaction value method 1
         if ip != "":
             wi.write(r, 9, float(ip))  # D.Val (customs value = item price)
@@ -239,6 +263,10 @@ def create_sad_workbook(data: dict, preferential: str = "general") -> bytes:
     wi.write(total_row, 6, round(sum(_num(it.get("item_price", 0), 0) for it in items), 2), _TOTAL_STYLE)
     wi.write(total_row, 11, total_duty, _TOTAL_STYLE)
     wi.write(total_row, 15, total_duty, _TOTAL_STYLE)
+    if _num(fx_rate) != "":
+        mvr = [calculate_item_duty(it, preferential, fx_rate) for it in items]
+        for col, key in ((32, "value_mvr"), (33, "duty_mvr"), (34, "revenue_mvr"), (35, "payable_mvr")):
+            wi.write(total_row, col, round(sum(m[key] for m in mvr), 2), _TOTAL_STYLE)
 
     buf = io.BytesIO()
     wb.save(buf)

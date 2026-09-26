@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.3.0 — 2026-09-26
+
+### Added
+- **Duty and revenue in MVR**, using the Maldives Customs exchange rate ([customs.gov.mv/eServices/exchangeRate](https://customs.gov.mv/eServices/exchangeRate)):
+  - Duty (MVR) = item price × duty % × MVR rate
+  - Revenue (MVR) = item price × MVR rate × 0.01
+  - Payable (MVR) = duty + revenue
+- The rate is fetched from Customs (cached 6 h); a rate typed in the **MVR rate** box, the form's exchange-rate field, `?exchange_rate=` or `--rate` takes priority. If Customs can't be reached, USD falls back to 15.42 with a warning.
+- Dashboard tiles for duty, revenue and total payable in MVR; *Duty MVR* and *Revenue MVR* columns in the items table.
+- Duty worksheet: *Exchange rate, Value, Duty, Revenue, Payable (MVR)* columns with totals, plus an MVR summary on the General Segment sheet.
+- `/api/exchange-rates` endpoint; `SAD_FX_URL`, `SAD_FX_CACHE_TTL`, `SAD_REVENUE_RATE` settings.
+
 ## 3.2.0 — 2026-09-26
 
 ### Changed

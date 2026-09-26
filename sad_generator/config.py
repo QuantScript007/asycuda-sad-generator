@@ -46,6 +46,13 @@ HS_MAX_CONCURRENCY = _env_int("SAD_HS_MAX_CONCURRENCY", 4)
 HS_CACHE_TTL = _env_int("SAD_HS_CACHE_TTL", 6 * 60 * 60)  # seconds
 HS_RETRIES = _env_int("SAD_HS_RETRIES", 1)
 
+# Maldives Customs exchange rates (MVR per unit of foreign currency)
+FX_URL = os.environ.get("SAD_FX_URL", "https://customs.gov.mv/eServices/exchangeRate")
+FX_CACHE_TTL = _env_int("SAD_FX_CACHE_TTL", 6 * 60 * 60)
+
+# Revenue charged per item = item price × MVR rate × REVENUE_RATE (1%)
+REVENUE_RATE = _env_float("SAD_REVENUE_RATE", 0.01)
+
 # Uploads
 MAX_UPLOAD_MB = _env_int("SAD_MAX_UPLOAD_MB", 20)
 HISTORY_LIMIT = _env_int("SAD_HISTORY_LIMIT", 50)
