@@ -1,8 +1,8 @@
 # ASYCUDA SAD Generator
 
-Turn a shipment spreadsheet (or a quick web form) into a ready-to-import **ASYCUDA++ SAD** workbook — with HS codes and customs duty looked up automatically from the **Maldives Customs** online tariff.
+Turn a **scanned supplier invoice**, a shipment spreadsheet or a quick web form into a ready-to-import **ASYCUDA++ SAD** workbook — with HS codes and customs duty looked up automatically from the **Maldives Customs** online tariff.
 
-Runs entirely on your own computer. No accounts, no credits.
+Runs on your own computer. No accounts, no credits. Scanning is free; an optional Anthropic API key makes it smarter.
 
 ![ASYCUDA SAD Generator home screen](docs/images/home.png)
 
@@ -10,6 +10,7 @@ Runs entirely on your own computer. No accounts, no credits.
 
 ## What it does
 
+- **Scan invoice → SAD** (new in 3.4): drop scanned or photographed invoices, packing lists and B/Ls (PDF, JPG, PNG, WebP). The declaration header and every line — description, quantity, unit, unit price, line total, packages, weights, brand, model, origin — are read into the SAD form for you to check. See [Scanning invoices](#scanning-invoices).
 - **Excel → SAD**: upload the SAD model, the simple template or a previously generated SAD (`.xls` / `.xlsx`) and download the **official ASYCUDA SAD model filled in** — same sheets, formatting, dropdowns and field hints as the original model, ready to import.
 - **Duty & revenue in MVR**: duty = item price × duty % × MVR rate, revenue = item price × MVR rate × 1%, using the [Maldives Customs exchange rate](https://customs.gov.mv/eServices/exchangeRate) (fetched automatically, or type your own).
 - **Duty worksheet**: a second download with item-by-item duty rate, duty amount and IPV tax lines.
@@ -75,6 +76,22 @@ python sad_generator_local.py template -o SAD_MODEL.xls
 
 The `.exe` accepts the same commands, e.g. `ASYCUDA_SAD_Generator.exe generate shipment.xlsx`.
 
+## Scanning invoices
+
+Choose **📷 Scan Invoice**, drop the documents, and press **Read documents**. The form fills in and opens for review; a **📄 Scanned pages** button lets you check each value against the page. Highlighted fields need a closer look (low-confidence HS code, weight spread from the shipment total, description over ASYCUDA's 49 characters).
+
+| | Free reading (default) | With an Anthropic API key |
+|---|---|---|
+| How | OCR in your browser (Tesseract.js); digital PDFs use their own text | Claude reads the page images / PDFs |
+| Good at | Clear, typed invoices with one line per item | Any layout, photos, stamps, multi-page invoices |
+| Packing lists | Not merged | Weights and packages copied onto the matching lines |
+| HS codes | Searched in the tariff by description | Claude suggests a heading; the best national code under it is picked from the tariff |
+| Cost | Free (needs internet once to download the reader) | Billed to your key, usually cents per invoice |
+
+To use Claude, paste a key from [console.anthropic.com](https://console.anthropic.com) into **Reading settings** (it stays in that browser), or set `ANTHROPIC_API_KEY` before starting the app so everyone on your network uses it.
+
+Always check the lines, HS codes and weights before lodging — the checks panel flags totals that don't add up.
+
 ## Input format
 
 **SAD model (recommended).** Download it from the app (**⬇ SAD Model**) or with `python sad_generator_local.py template`. It is the same workbook the app outputs: fill the *General Segment* values (column C, currency in D) and one item per row on the *Items* sheet from row 4. Comments on the header cells explain each field; dropdowns and length limits come from ASYCUDA.
@@ -109,6 +126,10 @@ Environment variables (all optional):
 | `SAD_MODEL_PATH` | bundled `SAD_MODEL.xls` | SAD model used for the download |
 | `SAD_FX_URL` | Customs exchange-rate page | Where MVR rates are read from |
 | `SAD_REVENUE_RATE` | `0.01` | Revenue = price × MVR rate × this |
+| `ANTHROPIC_API_KEY` | — | Lets *Scan invoice* use Claude for everyone (a key typed in the browser also works) |
+| `SAD_SCAN_MODEL` | `claude-sonnet-5` | Claude model used for scanning |
+| `SAD_SCAN_TIMEOUT` | `180` | Seconds to wait for Claude |
+| `SAD_SCAN_MAX_FILES` | `20` | Files per scan |
 
 ## API
 
@@ -119,6 +140,9 @@ Interactive docs at <http://localhost:8000/docs>. Main endpoints:
 | `POST` | `/generate?preferential=general\|safta\|cmfta` | Upload Excel → SAD |
 | `POST` | `/api/generate-manual` | JSON `{general, items, preferential}` → SAD |
 | `POST` | `/api/preview` | Parse an upload without generating (includes `analytics`) |
+| `POST` | `/api/scan` | Scanned documents (multipart `files`) → form data, read by Claude (`X-Anthropic-Key` header or server key) |
+| `POST` | `/api/scan-text` | JSON `{text}` from OCR / a PDF text layer → form data |
+| `GET` | `/api/scan/status` | Whether a server-side API key is set |
 | `GET` | `/api/hs-lookup?description=…` | HS code search (with duty / SAFTA / CMFTA rates) |
 | `GET` | `/api/hs-tariff/{hs_code}` | Tariff for one code |
 | `GET` | `/api/history` · `/output/{file}` · `DELETE /output/{file}` | Generated files |
@@ -132,6 +156,7 @@ sad_generator/
   app.py          FastAPI routes
   cli.py          serve / generate / template commands
   service.py      generate pipeline shared by web + CLI
+  invoice_scan.py read scanned invoices (Claude or OCR text) into form data, tariff-anchored HS codes
   excel_io.py     read template, native and generated SAD workbooks
   sad_model.py    fill the ASYCUDA SAD model (the main download)
   xls_template.py edit .xls cells in place, keeping dropdowns & comments

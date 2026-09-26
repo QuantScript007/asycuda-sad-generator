@@ -802,6 +802,40 @@
   .history-item { display: flex; gap: 10px; align-items: center; }
   .history-item .h-badge { flex: 0 0 34px; height: 34px; border-radius: 9px; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; }
   .history-item .h-body { min-width: 0; flex: 1; }
+
+  /* Scan invoice */
+  .scan-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-top: 14px; }
+  @media (max-width: 900px) { .scan-grid { grid-template-columns: 1fr; } }
+  .scan-thumbs { display: flex; flex-wrap: wrap; gap: 8px; }
+  .scan-thumb { position: relative; width: 62px; height: 82px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: var(--bg-soft); cursor: pointer; padding: 0; }
+  .scan-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .scan-thumb.active { outline: 2px solid var(--primary); outline-offset: 1px; }
+  .scan-thumb .pg { position: absolute; left: 0; right: 0; bottom: 0; font-size: 9px; background: rgba(15,23,42,.75); color: #fff; padding: 1px 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .scan-thumb .x { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border: 0; border-radius: 4px; background: rgba(15,23,42,.8); color: #fff; font-size: 11px; line-height: 18px; padding: 0; cursor: pointer; }
+  .scan-view { border: 1px solid var(--border); border-radius: 10px; background: var(--bg-soft); max-height: 70vh; overflow: auto; }
+  .scan-view img { display: block; width: 100%; max-width: none; }
+  .scan-view.zoom img { width: 200%; }
+  .scan-view .empty-note { padding: 40px 16px; text-align: center; color: var(--text-muted); font-size: 13px; }
+  .engine { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+  .engine.claude { background: var(--info-soft); color: var(--info); }
+  .engine.free { background: var(--success-soft); color: var(--success); }
+  .scan-settings { margin-top: 12px; border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; background: var(--bg-soft); font-size: 13px; }
+  .scan-settings summary { cursor: pointer; font-weight: 600; }
+  .scan-settings .row { display: grid; grid-template-columns: 1fr 180px; gap: 10px; margin-top: 10px; }
+  @media (max-width: 600px) { .scan-settings .row { grid-template-columns: 1fr; } }
+  .scan-found { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin: 12px 0; }
+  .scan-found div { background: var(--bg-soft); border-radius: 10px; padding: 8px 10px; }
+  .scan-found b { display: block; font-size: 16px; }
+  .scan-found span { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+  .scan-checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .scan-checks li { padding: 7px 10px; border-radius: 8px; font-size: 13px; }
+  .scan-checks li.ok { background: var(--success-soft); color: var(--success); }
+  .scan-checks li.warn { background: var(--warning-soft); color: var(--warning); }
+  .scan-checks li.err { background: var(--danger-soft); color: var(--danger); }
+  .items-edit-table input.flag-warn { border-color: var(--warning) !important; background: var(--warning-soft) !important; }
+  .pages-btn { position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 40; box-shadow: var(--shadow-lg); }
+  .pages-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(560px, 100vw); background: var(--bg-elev); border-left: 1px solid var(--border); box-shadow: var(--shadow-lg); z-index: 50; display: flex; flex-direction: column; padding: calc(12px + env(safe-area-inset-top, 0px)) 14px 14px; gap: 10px; }
+  .pages-drawer .scan-view { flex: 1; max-height: none; }
 </style>
 </head>
 <body>
@@ -824,7 +858,7 @@
 <div class="container">
   <div class="hero">
     <h1>Generate ASYCUDA SAD files in seconds</h1>
-    <p>Upload your filled Excel template (or a native ASYCUDA file), and we'll parse it, auto-lookup any missing HS codes against the Maldives Customs tariff database, and produce a ready-to-import SAD workbook — all on your local machine.</p>
+    <p>Scan a supplier invoice, upload your Excel template, or type it in. Lines are read from the documents, HS codes are matched against the Maldives Customs tariff, duty is calculated, and you get the official ASYCUDA SAD model filled in — on your own machine.</p>
     <div class="hero-stats">
       <div class="hero-stat"><b id="heroFiles">–</b><span>SAD files made</span></div>
       <div class="hero-stat"><b id="heroToday">–</b><span>Made today</span></div>
@@ -875,17 +909,67 @@
         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
           <div>
             <div style="font-weight: 700; font-size: 14px; margin-bottom: 2px;">Choose your input method</div>
-            <div style="font-size: 12px; color: var(--text-muted);">Upload an Excel file, or fill out a form manually — both produce the same SAD output.</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Scan the supplier's documents, upload an Excel file, or fill the form — all three produce the same SAD output.</div>
           </div>
           <div class="mode-switch">
-            <button class="mode-btn active" id="modeUpload" onclick="switchMode('upload')">📁 Upload Excel</button>
+            <button class="mode-btn active" id="modeScan" onclick="switchMode('scan')">📷 Scan Invoice</button>
+            <button class="mode-btn" id="modeUpload" onclick="switchMode('upload')">📁 Upload Excel</button>
             <button class="mode-btn" id="modeManual" onclick="switchMode('manual')">✍️ Manual Entry</button>
           </div>
         </div>
       </div>
 
+      <!-- Scan card -->
+      <div class="card accent a-cool" id="scanCard">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Step 2 · Scan the supplier's documents</h2>
+            <div class="card-sub">Drop the commercial invoice, and the packing list or B/L if you have them. The header and every line are read into the SAD form for you to check before generating.</div>
+          </div>
+          <span class="engine free" id="scanEngine">Free reading</span>
+        </div>
+
+        <div class="dropzone" id="scanDrop" onclick="$('scanInput').click()">
+          <div class="dropzone-icon">📷</div>
+          <div class="dropzone-text">Drop scanned invoices, packing lists or B/Ls</div>
+          <div class="dropzone-hint">or <span class="browse-link">browse</span> · PDF, JPG, PNG, WebP or phone photos · several files at once</div>
+        </div>
+        <input type="file" id="scanInput" multiple accept="application/pdf,.pdf,image/jpeg,image/png,image/webp,image/gif" class="hidden">
+
+        <details class="scan-settings" id="scanSettings">
+          <summary>Reading settings · <span id="scanKeyState">no API key, free reading</span></summary>
+          <div style="color: var(--text-muted); margin-top: 8px;">
+            <b>Free reading</b> runs OCR in this browser. It handles clear, typed invoices; it struggles with handwriting, stamps and crooked photos, and can't merge packing lists.
+            <b>With an Anthropic API key</b>, Claude reads the pages, merges packing-list weights onto the lines and suggests HS codes, which are then matched to the Maldives tariff. Get a key at console.anthropic.com; reads are billed to it.
+          </div>
+          <div class="row">
+            <label class="form-field"><span class="form-label">Anthropic API key (kept only in this browser)</span>
+              <input type="password" class="form-input" id="scanKey" autocomplete="off" placeholder="sk-ant-…"></label>
+            <label class="form-field"><span class="form-label">Model</span>
+              <input type="text" class="form-input" id="scanModel" placeholder="claude-sonnet-5"></label>
+          </div>
+          <div class="btn-row" style="margin-top: 8px;"><button class="btn btn-ghost" type="button" onclick="scanForgetKey()">Forget key</button></div>
+        </details>
+
+        <div class="scan-grid">
+          <div>
+            <div class="scan-thumbs" id="scanThumbs"></div>
+            <div class="btn-row" style="margin-top: 12px;">
+              <button class="btn btn-primary" id="scanReadBtn" onclick="scanRead()" disabled>🔎 Read documents</button>
+              <button class="btn btn-secondary hidden" id="scanStopBtn" onclick="SCAN.ctl && SCAN.ctl.abort()">Stop</button>
+            </div>
+            <div id="scanAlert"></div>
+            <div id="scanResult"></div>
+          </div>
+          <div>
+            <div class="scan-view" id="scanView"><div class="empty-note">Pages you add show here, so you can check the lines against them.</div></div>
+            <div class="btn-row" style="margin-top: 6px; justify-content: flex-end;"><button class="btn btn-ghost" type="button" onclick="scanToggleZoom()" id="scanZoomBtn">Zoom 200%</button></div>
+          </div>
+        </div>
+      </div>
+
       <!-- Upload card -->
-      <div class="card accent a-warm" id="uploadCard">
+      <div class="card accent a-warm hidden" id="uploadCard">
         <div class="card-header">
           <div>
             <h2 class="card-title">Step 2 · Upload your Excel file</h2>
@@ -1156,6 +1240,7 @@
                   <th style="min-width: 80px;">Box 35<br>Gross Mass</th>
                   <th style="min-width: 90px;">Box 42<br>Item Price</th>
                   <th style="min-width: 70px;">Box 31<br>Packages</th>
+                  <th style="min-width: 80px;">Box 41<br>Supp. Qty</th>
                   <th style="min-width: 90px; background: var(--primary-soft); color: var(--primary);">Box 43<br>Duty Rate %</th>
                   <th style="min-width: 100px; background: var(--primary-soft); color: var(--primary);">Box 47<br>Duty Amount</th>
                   <th style="min-width: 100px; background: var(--success-soft); color: var(--success);">Total w/ Duty</th>
@@ -1170,6 +1255,7 @@
                   <td colspan="5" style="text-align: right; padding: 10px 12px;">TOTALS →</td>
                   <td id="totalItemPrice" style="text-align: right; padding: 10px 12px;">$0.00</td>
                   <td id="totalPackages" style="text-align: right; padding: 10px 12px;">0</td>
+                  <td></td>
                   <td id="totalDutyRate" style="text-align: right; padding: 10px 12px; color: var(--primary);">—</td>
                   <td id="totalDutyAmount" style="text-align: right; padding: 10px 12px; color: var(--primary);">$0.00</td>
                   <td id="totalGrandTotal" style="text-align: right; padding: 10px 12px; color: var(--success);">$0.00</td>
@@ -1985,14 +2071,16 @@ function escapeHtml(s) {
 
 // ── Mode switcher (Upload | Manual Entry) ─────────────
 function switchMode(mode) {
-  const isManual = mode === 'manual';
-  $('modeUpload').classList.toggle('active', !isManual);
-  $('modeManual').classList.toggle('active', isManual);
-  $('uploadCard').classList.toggle('hidden', isManual);
-  $('manualCard').classList.toggle('hidden', !isManual);
-  if (isManual && $('itemsBody').children.length === 0) {
+  const cards = { scan: 'scanCard', upload: 'uploadCard', manual: 'manualCard' };
+  const btns = { scan: 'modeScan', upload: 'modeUpload', manual: 'modeManual' };
+  Object.keys(cards).forEach(m => {
+    $(btns[m]).classList.toggle('active', m === mode);
+    $(cards[m]).classList.toggle('hidden', m !== mode);
+  });
+  if (mode === 'manual' && $('itemsBody').children.length === 0) {
     addFormItem();
   }
+  scanUpdatePagesBtn();
 }
 
 // ── Manual Entry: Items table ──────────────────────────
@@ -2043,6 +2131,8 @@ function addFormItem(count = 1) {
     cells.push(`<td><input type="number" data-item="item_price" placeholder="0.00" step="0.01"></td>`);
     // No packages
     cells.push(`<td><input type="number" data-item="no_packages" placeholder="0" step="1"></td>`);
+    // Supplementary quantity (box 41)
+    cells.push(`<td><input type="number" data-item="supp_units" placeholder="0" step="any"></td>`);
     // Duty rate (computed, read-only)
     cells.push(`<td><input type="text" data-item="duty_rate" readonly placeholder="—" style="background: var(--bg-soft); color: var(--primary); font-weight: 600; text-align: right;"></td>`);
     // Duty amount (computed, read-only)
@@ -2204,7 +2294,11 @@ function collectItems() {
       hasAny = true;
       it[k] = v;
     });
-    if (hasAny) items.push(it);
+    if (hasAny) {
+      // Fields read from a scan that have no column (unit, unit price, net mass…)
+      if (tr.dataset.extra) { try { Object.assign(it, JSON.parse(tr.dataset.extra), { ...it }); } catch (e) {} }
+      items.push(it);
+    }
   });
   return items;
 }
@@ -2355,6 +2449,358 @@ async function generateManualSAD() {
     $('manualGenerateBtn').textContent = '⚡ Generate SAD from Form';
   }
 }
+
+// ── Scan invoice ───────────────────────────────────────
+// Documents are read by Claude on the server (with an API key) or, for free,
+// by OCR in this browser; either way the result fills the manual-entry form.
+const SCAN = { files: [], active: null, ctl: null, serverKey: false, result: null, zoom: false };
+const SCAN_LIBS = {
+  pdfWorker: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+  pdf: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+  tesseract: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js',
+};
+const _scripts = {};
+function loadScript(src) {
+  if (!_scripts[src]) {
+    _scripts[src] = new Promise((resolve, reject) => {
+      const el = document.createElement('script');
+      el.src = src;
+      el.onload = resolve;
+      el.onerror = () => { delete _scripts[src]; reject(new Error('Could not download the reader from ' + new URL(src).host + '. Check your internet connection.')); };
+      document.head.appendChild(el);
+    });
+  }
+  return _scripts[src];
+}
+async function loadPdfJs() {
+  await loadScript(SCAN_LIBS.pdfWorker);   // defines pdfjsWorker → pdf.js runs without a cross-origin worker
+  await loadScript(SCAN_LIBS.pdf);
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc = SCAN_LIBS.pdfWorker;
+  return window.pdfjsLib;
+}
+
+const lsGet = (k) => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
+const lsSet = (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch (e) {} };
+function scanKey() { return ($('scanKey').value || '').trim(); }
+function scanUsesClaude() { return !!scanKey() || SCAN.serverKey; }
+function scanRefreshEngine() {
+  const claude = scanUsesClaude();
+  $('scanEngine').className = 'engine ' + (claude ? 'claude' : 'free');
+  $('scanEngine').textContent = claude ? '✦ Claude reading' : 'Free reading';
+  $('scanKeyState').textContent = scanKey() ? 'API key saved, Claude reads the pages'
+    : SCAN.serverKey ? 'server API key set, Claude reads the pages' : 'no API key, free reading';
+}
+function scanForgetKey() { $('scanKey').value = ''; lsSet('sad-scan-key', ''); scanRefreshEngine(); }
+$('scanKey').value = lsGet('sad-scan-key');
+$('scanModel').value = lsGet('sad-scan-model');
+$('scanKey').addEventListener('input', () => { lsSet('sad-scan-key', scanKey()); scanRefreshEngine(); });
+$('scanModel').addEventListener('input', () => lsSet('sad-scan-model', $('scanModel').value.trim()));
+
+// Files → pages
+const scanDrop = $('scanDrop');
+['dragenter', 'dragover'].forEach(ev => scanDrop.addEventListener(ev, e => { e.preventDefault(); scanDrop.classList.add('dragging'); }));
+['dragleave', 'drop'].forEach(ev => scanDrop.addEventListener(ev, e => { e.preventDefault(); scanDrop.classList.remove('dragging'); }));
+scanDrop.addEventListener('drop', e => scanAddFiles(e.dataTransfer.files));
+$('scanInput').addEventListener('change', e => { scanAddFiles(e.target.files); e.target.value = ''; });
+
+let _pageId = 0;
+async function scanAddFiles(list) {
+  const files = Array.from(list || []);
+  if (!files.length) return;
+  showAlert('scanAlert', 'info', '<span class="spinner"></span> Preparing pages…');
+  const problems = [];
+  for (const file of files) {
+    try {
+      const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+      const entry = { file, kind: isPdf ? 'pdf' : 'image', pages: [] };
+      if (isPdf) {
+        const pdfjs = await loadPdfJs();
+        const doc = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
+        const n = Math.min(doc.numPages, 30);
+        for (let p = 1; p <= n; p++) {
+          const page = await doc.getPage(p);
+          const base = page.getViewport({ scale: 1 });
+          const vp = page.getViewport({ scale: 2200 / Math.max(base.width, base.height) });
+          const c = document.createElement('canvas');
+          c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+          const cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
+          await page.render({ canvasContext: cx, viewport: vp }).promise;
+          const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.9));
+          let text = '';
+          try {
+            const tc = await page.getTextContent();
+            text = tc.items.map(t => t.str + (t.hasEOL ? '\n' : ' ')).join('').replace(/[ \t]+/g, ' ').trim();
+          } catch (e) {}
+          entry.pages.push({ id: ++_pageId, name: `${file.name} · p${p}`, blob, url: URL.createObjectURL(blob), text });
+        }
+        if (doc.numPages > 30) problems.push(`${file.name}: only the first 30 pages were added.`);
+      } else if (/^image\/(jpeg|png|webp|gif)$/.test(file.type)) {
+        entry.pages.push({ id: ++_pageId, name: file.name, blob: file, url: URL.createObjectURL(file), text: '' });
+      } else {
+        problems.push(`${file.name}: use PDF, JPG, PNG or WebP (convert HEIC photos first).`);
+        continue;
+      }
+      SCAN.files.push(entry);
+    } catch (e) {
+      problems.push(`${file.name}: ${e.message || e}`);
+    }
+  }
+  const pages = scanPages();
+  if (pages.length && !pages.some(p => p.id === SCAN.active)) SCAN.active = pages[0].id;
+  scanRender();
+  if (problems.length) showAlert('scanAlert', 'warning', problems.map(escapeHtml).join('<br>'));
+  else $('scanAlert').innerHTML = '';
+}
+function scanPages() { return SCAN.files.flatMap(f => f.pages); }
+function scanRemoveFile(pageId) {
+  const i = SCAN.files.findIndex(f => f.pages.some(p => p.id === pageId));
+  if (i < 0) return;
+  SCAN.files[i].pages.forEach(p => URL.revokeObjectURL(p.url));
+  SCAN.files.splice(i, 1);
+  const pages = scanPages();
+  if (!pages.some(p => p.id === SCAN.active)) SCAN.active = pages[0] ? pages[0].id : null;
+  scanRender();
+}
+function scanRender() {
+  const pages = scanPages();
+  const thumbs = pages.map(p => `
+    <div class="scan-thumb${p.id === SCAN.active ? ' active' : ''}" role="button" tabindex="0" onclick="scanShow(${p.id})" title="${escapeHtml(p.name)}">
+      <img src="${p.url}" alt=""><span class="pg">${escapeHtml(p.name)}</span>
+      <button class="x" onclick="event.stopPropagation(); scanRemoveFile(${p.id})" title="Remove this file">✕</button>
+    </div>`).join('');
+  $('scanThumbs').innerHTML = thumbs;
+  $('scanReadBtn').disabled = !pages.length || !!SCAN.ctl;
+  const active = pages.find(p => p.id === SCAN.active);
+  const view = active ? `<img src="${active.url}" alt="${escapeHtml(active.name)}">`
+    : '<div class="empty-note">Pages you add show here, so you can check the lines against them.</div>';
+  $('scanView').innerHTML = view;
+  const drawer = $('pagesDrawer');
+  if (drawer) {
+    drawer.querySelector('.scan-thumbs').innerHTML = thumbs;
+    drawer.querySelector('.scan-view').innerHTML = view;
+  }
+  scanUpdatePagesBtn();
+}
+function scanShow(id) { SCAN.active = id; scanRender(); }
+function scanToggleZoom() {
+  SCAN.zoom = !SCAN.zoom;
+  document.querySelectorAll('.scan-view').forEach(v => v.classList.toggle('zoom', SCAN.zoom));
+  document.querySelectorAll('.scan-zoom-btn, #scanZoomBtn').forEach(b => b.textContent = SCAN.zoom ? 'Fit width' : 'Zoom 200%');
+}
+
+// Page drawer for checking lines while reviewing the form
+function scanUpdatePagesBtn() {
+  let btn = $('pagesBtn');
+  const show = scanPages().length > 0 && !$('manualCard').classList.contains('hidden');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'pagesBtn'; btn.className = 'btn btn-primary pages-btn hidden';
+    btn.onclick = scanOpenDrawer;
+    document.body.appendChild(btn);
+  }
+  btn.textContent = `📄 Scanned pages (${scanPages().length})`;
+  btn.classList.toggle('hidden', !show);
+}
+function scanOpenDrawer() {
+  if ($('pagesDrawer')) { $('pagesDrawer').remove(); return; }
+  const d = document.createElement('div');
+  d.id = 'pagesDrawer'; d.className = 'pages-drawer';
+  d.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <b>Scanned pages</b>
+      <span><button class="btn btn-ghost scan-zoom-btn" onclick="scanToggleZoom()">${SCAN.zoom ? 'Fit width' : 'Zoom 200%'}</button>
+      <button class="btn btn-secondary" onclick="scanOpenDrawer()">Close</button></span></div>
+    <div class="scan-thumbs"></div><div class="scan-view${SCAN.zoom ? ' zoom' : ''}"></div>`;
+  document.body.appendChild(d);
+  scanRender();
+}
+
+// Reading
+async function shrinkImage(blob, maxSide = 2000) {
+  try {
+    const bmp = await createImageBitmap(blob);
+    const k = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas');
+    c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    const cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
+    cx.drawImage(bmp, 0, 0, c.width, c.height);
+    return await new Promise(r => c.toBlob(r, 'image/jpeg', 0.88));
+  } catch (e) { return blob; }
+}
+
+async function scanOcrText(signal) {
+  const pages = scanPages();
+  const texts = [];
+  let worker = null;
+  try {
+    for (let i = 0; i < pages.length; i++) {
+      if (signal.aborted) throw new DOMException('Stopped', 'AbortError');
+      const p = pages[i];
+      if (p.text && p.text.length > 120) { texts.push(p.text); continue; }   // digital PDF: its own text
+      if (!worker) {
+        showAlert('scanAlert', 'info', '<span class="spinner"></span> Loading the free reader (first time only, about 10 MB)…');
+        await loadScript(SCAN_LIBS.tesseract);
+        worker = await Tesseract.createWorker('eng', 1, {
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              showAlert('scanAlert', 'info', `<span class="spinner"></span> Reading page ${i + 1} of ${pages.length} on this computer… ${Math.round(m.progress * 100)}%`);
+            }
+          },
+        });
+        await worker.setParameters({ preserve_interword_spaces: '1' });
+      }
+      showAlert('scanAlert', 'info', `<span class="spinner"></span> Reading page ${i + 1} of ${pages.length} on this computer…`);
+      const { data } = await worker.recognize(await shrinkImage(p.blob, 2600));
+      texts.push(data.text || '');
+    }
+  } finally {
+    if (worker) worker.terminate();
+  }
+  return texts.join('\n');
+}
+
+async function scanRead() {
+  if (!SCAN.files.length || SCAN.ctl) return;
+  SCAN.ctl = new AbortController();
+  const signal = SCAN.ctl.signal;
+  $('scanStopBtn').classList.remove('hidden');
+  $('scanReadBtn').disabled = true;
+  $('scanReadBtn').innerHTML = '<span class="spinner"></span> Reading…';
+  $('scanResult').innerHTML = '';
+  try {
+    let res;
+    if (scanUsesClaude()) {
+      const fd = new FormData();
+      for (const f of SCAN.files) {
+        if (f.kind === 'pdf') fd.append('files', f.file, f.file.name);
+        else fd.append('files', await shrinkImage(f.file), f.file.name.replace(/\.\w+$/, '') + '.jpg');
+      }
+      fd.append('model', $('scanModel').value.trim());
+      showAlert('scanAlert', 'info', `<span class="spinner"></span> Claude is reading ${SCAN.files.length} file(s) and matching HS codes to the tariff. Usually 20–90 seconds.`);
+      const headers = scanKey() ? { 'X-Anthropic-Key': scanKey() } : {};
+      const r = await fetch('/api/scan', { method: 'POST', body: fd, headers, signal });
+      res = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(res.detail || `Reading failed (HTTP ${r.status}).`);
+    } else {
+      const text = await scanOcrText(signal);
+      if (!/[a-z]{3}/i.test(text)) throw new Error('No text could be read from these pages. Try a sharper, straighter scan, or add an API key in Reading settings.');
+      showAlert('scanAlert', 'info', '<span class="spinner"></span> Picking out the lines and matching HS codes to the Maldives tariff…');
+      const r = await fetch('/api/scan-text', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }), signal,
+      });
+      res = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(res.detail || `Reading failed (HTTP ${r.status}).`);
+    }
+    SCAN.result = res;
+    $('scanAlert').innerHTML = '';
+    scanRenderResult(res);
+    if (res.items && res.items.length) scanFillForm(res);
+  } catch (e) {
+    if (e.name === 'AbortError') showAlert('scanAlert', 'info', 'Stopped.');
+    else showAlert('scanAlert', 'danger', escapeHtml(e.message || String(e)));
+  } finally {
+    SCAN.ctl = null;
+    $('scanStopBtn').classList.add('hidden');
+    $('scanReadBtn').innerHTML = '🔎 Read documents';
+    scanRender();
+  }
+}
+
+function scanRenderResult(res) {
+  const items = res.items || [];
+  const g = res.general || {};
+  const inv = res.invoice || {};
+  const total = items.reduce((a, it) => a + (Number(it.item_price) || 0), 0);
+  const matched = items.filter(it => it.hs_source === 'tariff' || it.hs_source === 'search').length;
+  const cur = g.invoice_currency || '';
+  const found = [
+    [items.length, 'lines'],
+    [money(total, cur), 'goods value'],
+    [`${matched}/${items.length}`, 'HS matched to tariff'],
+    [inv.invoice_no || '—', 'invoice no.'],
+  ].map(([b, s]) => `<div><b>${escapeHtml(String(b))}</b><span>${s}</span></div>`).join('');
+  const checks = (res.checks || []).map(c => `<li class="${c.level}">${escapeHtml(c.text)}</li>`).join('');
+  const notes = (res.notes || []).map(n => `<li>${escapeHtml(n)}</li>`).join('');
+  $('scanResult').innerHTML = `
+    <div class="scan-found">${found}</div>
+    ${checks ? `<ul class="scan-checks">${checks}</ul>` : ''}
+    ${notes ? `<ul style="color:var(--text-muted);font-size:13px;margin:10px 0 0;padding-left:18px">${notes}</ul>` : ''}
+    ${items.length ? `<div class="btn-row" style="margin-top:12px"><button class="btn btn-primary" onclick="switchMode('manual'); $('manualCard').scrollIntoView({behavior:'smooth'})">Review the SAD form →</button></div>` : ''}`;
+}
+
+function setFormField(key, value) {
+  const el = document.querySelector(`#manualCard [data-f="${key}"]`);
+  if (!el || value === null || value === undefined || value === '') return;
+  if (el.tagName === 'SELECT' && ![...el.options].some(o => o.value === String(value))) {
+    el.add(new Option(String(value), String(value)));
+  }
+  el.value = value;
+}
+
+function scanFillForm(res) {
+  Object.entries(res.general || {}).forEach(([k, v]) => setFormField(k, v));
+  const body = $('itemsBody');
+  body.innerHTML = '';
+  const EXTRA = ['unit', 'unit_price', 'net_mass', 'package_kind'];
+  (res.items || []).forEach((it, i) => {
+    addFormItem();
+    const tr = body.lastElementChild;
+    ['hs_code', 'description', 'country_origin', 'gross_mass', 'item_price', 'no_packages', 'supp_units', 'brand', 'model']
+      .forEach(k => { const el = tr.querySelector(`[data-item="${k}"]`); if (el && it[k] !== undefined && it[k] !== null) el.value = it[k]; });
+    const extra = {};
+    EXTRA.forEach(k => { if (it[k] !== undefined && it[k] !== null && it[k] !== '') extra[k] = it[k]; });
+    if (Object.keys(extra).length) tr.dataset.extra = JSON.stringify(extra);
+    if (it.duty_rate !== undefined && it.duty_rate !== null) {
+      tr.querySelector('[data-item="duty_rate"]').value = it.duty_rate + '%';
+    }
+    const hs = tr.querySelector('[data-item="hs_code"]');
+    const cands = it.hs_candidates || [];
+    if (cands.length) {
+      const dl = document.createElement('datalist');
+      dl.id = `hsList${Date.now()}_${i}`;
+      dl.innerHTML = cands.map(c => `<option value="${escapeHtml(c.hs_code)}">${escapeHtml(`${c.duty_rate ?? '?'}% · ${c.description || ''}`)}</option>`).join('');
+      tr.appendChild(dl);
+      hs.setAttribute('list', dl.id);
+      const top = cands.find(c => c.hs_code === it.hs_code) || cands[0];
+      hs.title = `${top.description || ''} — ${cands.length} tariff match(es); click the field to pick another.`;
+    }
+    if (!it.hs_code || it.hs_source === 'suggested' || it.hs_confidence === 'low') {
+      hs.classList.add('flag-warn');
+      hs.title = (hs.title ? hs.title + ' ' : '') + 'Check this code: low confidence or not found in the tariff.';
+    }
+    if (it.gross_mass_allocated) {
+      const gm = tr.querySelector('[data-item="gross_mass"]');
+      gm.classList.add('flag-warn');
+      gm.title = 'Spread from the shipment gross weight by value. Replace with the real line weight if you have it.';
+    }
+    const d = tr.querySelector('[data-item="description"]');
+    if ((it.description || '').length > 49) {
+      d.classList.add('flag-warn');
+      d.title = 'ASYCUDA keeps only 49 characters of the description. Shorten it.';
+    }
+  });
+  if (!body.children.length) addFormItem();
+  updateItemsSummary();
+  // Fetch SAFTA / CMFTA rates for the matched codes in the background
+  document.querySelectorAll('#itemsBody tr').forEach(tr => {
+    const hs = (tr.querySelector('[data-item="hs_code"]').value || '').replace(/\D/g, '');
+    if (hs.length >= 8) autoLookupDuty(tr);
+  });
+  switchMode('manual');
+  const n = (res.items || []).length;
+  const flagged = document.querySelectorAll('#itemsBody input.flag-warn').length;
+  showAlert('manualAlert', 'info',
+    `Filled from the scan: ${n} line(s)${res.engine === 'claude' ? ', read by Claude' : ', read free on this computer'}. ` +
+    `Check every value against the pages (📄 button, bottom right)${flagged ? `; <b>${flagged} highlighted field(s)</b> need a closer look` : ''}. ` +
+    `Add the consignee code, B/L number and anything else missing, then generate.`);
+  $('manualCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+fetch('/api/scan/status').then(r => r.json()).then(x => {
+  SCAN.serverKey = !!x.server_key;
+  if (!$('scanModel').value) $('scanModel').placeholder = x.model || 'claude-sonnet-5';
+  scanRefreshEngine();
+}).catch(() => scanRefreshEngine());
+scanRender();
 
 // ── Init ───────────────────────────────────────────────
 loadHistory();

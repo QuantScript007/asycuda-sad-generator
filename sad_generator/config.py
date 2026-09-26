@@ -56,3 +56,9 @@ REVENUE_RATE = _env_float("SAD_REVENUE_RATE", 0.01)
 # Uploads
 MAX_UPLOAD_MB = _env_int("SAD_MAX_UPLOAD_MB", 20)
 HISTORY_LIMIT = _env_int("SAD_HISTORY_LIMIT", 50)
+
+# Scan invoice (Claude). The key can also be typed into the Scan settings in the browser.
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+SCAN_MODEL = os.environ.get("SAD_SCAN_MODEL", "claude-sonnet-5")
+SCAN_TIMEOUT = _env_float("SAD_SCAN_TIMEOUT", 180.0)
+SCAN_MAX_FILES = _env_int("SAD_SCAN_MAX_FILES", 20)

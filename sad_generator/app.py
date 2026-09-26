@@ -8,11 +8,11 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from fastapi import FastAPI, File, Form, Header, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, Response
 from pydantic import BaseModel, Field
 
-from . import __version__, config, exchange, service
+from . import __version__, config, exchange, invoice_scan, service
 from .analytics import build_analytics
 from .duty import PREFERENTIAL_KEYS
 from .excel_io import read_input_excel
@@ -57,6 +57,11 @@ class ManualEntryRequest(BaseModel):
     items: list[dict] = Field(default_factory=list)
     preferential: str = "general"
     exchange_rate: float | None = None
+
+
+class ScanTextRequest(BaseModel):
+    text: str = Field(..., max_length=400_000)
+    lookup: bool = True
 
 
 # ── Helpers ──────────────────────────────────────────────────
@@ -185,6 +190,57 @@ async def generate_sad_manual(payload: ManualEntryRequest):
         exchange_rate=payload.exchange_rate,
     )
     return GenerateResponse(**result.to_response())
+
+
+# ── Scan invoice ─────────────────────────────────────────────
+
+@app.get("/api/scan/status")
+async def scan_status():
+    """Whether a server-side Anthropic API key is configured (the browser may also send its own)."""
+    return {"server_key": bool(config.ANTHROPIC_API_KEY), "model": config.SCAN_MODEL}
+
+
+@app.post("/api/scan")
+async def scan_documents(
+    files: list[UploadFile] = File(...),
+    model: str = Form(""),
+    lookup: bool = Form(True),
+    x_anthropic_key: str | None = Header(None),
+):
+    """Read scanned invoices / packing lists / B/Ls with Claude and return SAD form data."""
+    api_key = (x_anthropic_key or "").strip() or config.ANTHROPIC_API_KEY
+    if not api_key:
+        raise HTTPException(400, "No Anthropic API key is set. Add one in the Scan settings, or use free reading.")
+    if len(files) > config.SCAN_MAX_FILES:
+        raise HTTPException(413, f"Scan at most {config.SCAN_MAX_FILES} files at a time.")
+    payload, total = [], 0
+    for f in files:
+        data = await f.read()
+        total += len(data)
+        media = (f.content_type or "").lower()
+        name = f.filename or "document"
+        if media not in invoice_scan.IMAGE_TYPES and media != invoice_scan.PDF_TYPE:
+            media = invoice_scan.PDF_TYPE if name.lower().endswith(".pdf") else media
+        payload.append((name, data, media))
+    if total > config.MAX_UPLOAD_MB * 1024 * 1024:
+        raise HTTPException(413, f"The documents add up to more than {config.MAX_UPLOAD_MB} MB. Scan fewer pages at once.")
+    try:
+        raw = await invoice_scan.read_with_claude(payload, api_key, model.strip() or None)
+    except invoice_scan.ScanError as exc:
+        raise HTTPException(exc.status, str(exc)) from exc
+    result = invoice_scan.to_form(raw, engine="claude")
+    if lookup:
+        await invoice_scan.resolve_hs_codes(result["items"])
+    return result
+
+
+@app.post("/api/scan-text")
+async def scan_text(payload: ScanTextRequest):
+    """Parse OCR / PDF text (read free in the browser) into SAD form data."""
+    result = invoice_scan.to_form(invoice_scan.parse_invoice_text(payload.text), engine="text")
+    if payload.lookup:
+        await invoice_scan.resolve_hs_codes(result["items"])
+    return result
 
 
 @app.get("/api/history")

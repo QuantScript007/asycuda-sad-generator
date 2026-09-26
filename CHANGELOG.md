@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.4.0 — 2026-09-26
+
+### Added
+- **📷 Scan Invoice** — the new default input method (merged in from *Declaration Desk*). Drop scanned or photographed commercial invoices, packing lists and B/Ls (PDF, JPG, PNG, WebP); the header and every line are read into the manual-entry SAD form for review.
+  - **With an Anthropic API key** (typed into *Reading settings*, kept only in the browser, or `ANTHROPIC_API_KEY` on the server), Claude reads the pages, merges packing-list weights and package counts onto the invoice lines, and suggests an HS heading for each line.
+  - **Without a key**, pages are read free with OCR in the browser (Tesseract.js); digital PDFs use their own text layer.
+- **HS codes anchored to the Maldives tariff**: each suggested heading (or, failing that, the description) is searched in the Customs tariff and the best national code under it is picked, with its duty rate. Other matches are offered in the HS field's drop-down.
+- **Checks** after reading: qty × unit price vs line total, lines vs invoice total (discount and charges understood), line weights and packages vs the document totals, missing B/L number or origin.
+- When only a shipment gross weight is given, it is spread over the lines by value (box 35 is required per item) and highlighted.
+- A **Scanned pages** drawer to check the form against the documents while reviewing, with 200% zoom.
+- **Supp. Qty (box 41)** column in the manual-entry items table.
+- `/api/scan`, `/api/scan-text` and `/api/scan/status` endpoints; `ANTHROPIC_API_KEY`, `SAD_SCAN_MODEL`, `SAD_SCAN_TIMEOUT`, `SAD_SCAN_MAX_FILES` settings.
+
 ## 3.3.0 — 2026-09-26
 
 ### Added
