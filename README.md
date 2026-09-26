@@ -4,6 +4,8 @@ Turn a shipment spreadsheet (or a quick web form) into a ready-to-import **ASYCU
 
 Runs entirely on your own computer. No accounts, no credits.
 
+![ASYCUDA SAD Generator home screen](docs/images/home.png)
+
 ---
 
 ## What it does
@@ -15,6 +17,21 @@ Runs entirely on your own computer. No accounts, no credits.
 - **Command line** mode for batch or scripted use — no browser needed.
 - **Shipment dashboard**: goods / CIF / landed cost, effective duty rate, duty by HS chapter, value by origin country, rate bands, top dutiable items, and checks against the declared invoice total and package count — on every result and in the file preview.
 - **History** of generated files, downloadable from the sidebar.
+
+## Screenshots
+
+**Results dashboard** — cost build-up, duty by HS chapter, value by origin, rate bands, top duty items and checks:
+
+![Results dashboard](docs/images/dashboard.png)
+
+<table>
+<tr>
+<td width="50%"><b>Dark mode</b><br><img src="docs/images/dashboard-dark.png" alt="Dashboard in dark mode"></td>
+<td width="50%"><b>File preview · Insights tab</b><br><img src="docs/images/preview.png" alt="File preview with insights"></td>
+</tr>
+</table>
+
+<sub>Screenshots use made-up demo data.</sub>
 
 ## Quick start (Windows)
 
