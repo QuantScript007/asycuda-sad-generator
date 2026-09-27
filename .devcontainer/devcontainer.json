@@ -1,0 +1,17 @@
+{
+  "name": "ASYCUDA SAD Generator",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "postCreateCommand": "pip install --no-cache-dir -r requirements.txt",
+  "postAttachCommand": {
+    "server": "python sad_generator_local.py serve --no-browser --port 8000"
+  },
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": { "label": "SAD Generator", "onAutoForward": "openBrowser" }
+  },
+  "customizations": {
+    "codespaces": { "openFiles": ["README.md"] },
+    "vscode": { "extensions": ["ms-python.python"] }
+  },
+  "hostRequirements": { "cpus": 2 }
+}

@@ -16,6 +16,11 @@ Turn a scanned supplier invoice, an Excel sheet or a web form into a ready-to-im
 
 ## Run it
 
+**Online, full version (GitHub Codespaces):** [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/QuantScript007/asycuda-sad-generator?quickstart=1)
+Sign in to GitHub. After about a minute the app opens in a new tab, with live tariff and exchange-rate lookups. GitHub gives 60 free hours a month; stop the codespace when you're done.
+
+**Online, phone version (GitHub Pages):** <https://quantscript007.github.io/asycuda-sad-mobile/> — scan, form and Excel in the browser. Duty % and the MVR rate are typed in there.
+
 **Windows:** double-click `start_sad_generator.bat`. It opens at <http://localhost:8000>. You can also use the `.exe` from Releases.
 
 **macOS / Linux:**
