@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.5.0 — 2026-10-14
+
+### Added
+- **Stronger pre-flight checks** (`sad_generator/validation.py`), shown as warnings with the SAD box number before you import into ASYCUDA:
+  - header: country of export and origin must be 2-letter ISO codes, invoice currency a 3-letter code, delivery terms a recognised Incoterm;
+  - items add up to the invoice total, and package counts add up to the declared total (1% tolerance for rounding);
+  - per item: missing, 6-digit or odd-length HS code, zero / negative / non-numeric price, gross mass or supplementary quantity, fractional or negative package counts;
+  - repeated lines flagged as likely duplicates.
+- `check_shipment()` returns structured issues (severity, item number, field) for use by other tools; `service.validate()` still returns plain strings.
+
 ## 3.4.0 — 2026-09-26
 
 ### Added

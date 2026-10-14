@@ -15,6 +15,7 @@ from .hs_lookup import enrich_items_hs_codes
 from .sad_builder import create_sad_workbook
 from .sad_model import create_sad_model_workbook
 from .utils import normalize_hs_code, safe_filename_part
+from .validation import validate as _validate
 
 log = logging.getLogger(__name__)
 
@@ -51,16 +52,7 @@ class GenerateResult:
 
 def validate(data: dict) -> list[str]:
     """Non-fatal warnings about the input, shown to the user alongside the result."""
-    warnings: list[str] = []
-    g = data.get("general", {})
-    if not g.get("bl_number"):
-        warnings.append("BL number is empty (box 40).")
-    for idx, it in enumerate(data.get("items", []), start=1):
-        if not str(it.get("description") or it.get("commercial_description") or "").strip():
-            warnings.append(f"Item {idx}: description is empty (box 31).")
-        if it.get("item_price") in (None, ""):
-            warnings.append(f"Item {idx}: item price is empty (box 42).")
-    return warnings
+    return _validate(data)
 
 
 def output_name(general: dict, now: datetime | None = None) -> str:

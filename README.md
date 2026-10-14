@@ -11,7 +11,7 @@ Turn a scanned supplier invoice, an Excel sheet or a web form into a ready-to-im
 - **✍️ Manual entry** – fill the SAD form in the browser.
 - **HS codes and duty** – matched against the Maldives Customs tariff, with General, SAFTA or CMFTA rates.
 - **Duty and revenue in MVR** – uses the Customs exchange rate.
-- **Checks** – line totals, invoice total, weights and packages.
+- **Checks** – line totals, invoice total, weights and packages, plus pre-flight checks (country and currency codes, Incoterms, HS code length, duplicate lines) with SAD box numbers.
 - **Output** – the official SAD model filled in, plus a duty worksheet and a shipment dashboard.
 
 ## Run it
